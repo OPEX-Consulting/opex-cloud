@@ -1,26 +1,432 @@
 @import "tailwindcss";
 
+/* =========================================
+   OPEX CLOUD — DESIGN TOKENS
+   Soft white, Apple-inspired design
+   ========================================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Backgrounds */
+  --background: #fafbfd;
+  --foreground: #111827;
+
+  /* Opex navy-blue brand */
+  --brand-navy: #07152f;
+  --brand-navy-dark: #030916;
+  --brand-navy-light: #10264b;
+  --brand-blue: #315caa;
+  --brand-blue-light: #8bb8ff;
+
+  /* Light surfaces */
+  --surface: #ffffff;
+  --surface-secondary: #f4f7fb;
+  --surface-hover: #edf2f9;
+  --surface-blue: #edf3fc;
+
+  /* Typography */
+  --text-primary: #111827;
+  --text-secondary: #526078;
+  --text-muted: #778398;
+
+  /* Borders */
+  --border: #e5eaf2;
+  --border-hover: #cbd5e1;
+
+  /* Status */
+  --success: #15803d;
+
+  /* Fonts */
+  --font-primary: var(--font-montserrat);
+  --font-mono: var(--font-geist-mono);
+
+  /* Components */
+  --radius-card: 18px;
+  --radius-button: 10px;
 }
+
+/* =========================================
+   TAILWIND CSS V4 THEME
+   ========================================= */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+
+  /* Opex brand */
+  --color-opex-navy: var(--brand-navy);
+  --color-opex-navy-dark: var(--brand-navy-dark);
+  --color-opex-navy-light: var(--brand-navy-light);
+  --color-opex-blue: var(--brand-blue);
+  --color-opex-blue-light: var(--brand-blue-light);
+
+  /* Surfaces */
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-blue: var(--surface-blue);
+
+  /* Text */
+  --color-muted: var(--text-muted);
+  --color-secondary: var(--text-secondary);
+
+  /* Borders */
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+
+  /* Fonts */
+  --font-sans: var(--font-montserrat);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =========================================
+   RESET AND BASE STYLES
+   ========================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
 }
 
 body {
+  margin: 0;
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-primary), sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: #dbe7fb;
+  color: var(--brand-navy);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 4px;
+}
+
+/* =========================================
+   HERO — SOFT WHITE WITH NAVY GRADIENT
+   Suitable for a hero image
+   ========================================= */
+
+.opex-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #fafbfd;
+  background-image: linear-gradient(
+    to top,
+    rgb(7 21 47 / 9%) 0%,
+    rgb(49 92 170 / 4%) 22%,
+    transparent 52%
+  );
+}
+
+/* Subtle navy-blue glow at the bottom */
+
+.opex-hero-glow {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 42%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgb(49 92 170 / 10%) 0%,
+    rgb(49 92 170 / 4%) 42%,
+    transparent 75%
+  );
+}
+
+/* Optional gradient for other sections */
+
+.opex-gradient {
+  background-color: #fafbfd;
+  background-image: linear-gradient(
+    to top,
+    #edf3fc 0%,
+    #f5f8fc 30%,
+    #fafbfd 75%
+  );
+}
+
+/* =========================================
+   NAVIGATION
+   Clean, translucent white
+   ========================================= */
+
+.opex-navbar {
+  border-bottom: 1px solid rgb(7 21 47 / 7%);
+  background: rgb(250 251 253 / 85%);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+/* =========================================
+   BUTTONS
+   ========================================= */
+
+.opex-button-primary {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 24px;
+  border: 1px solid var(--brand-navy);
+  border-radius: var(--radius-button);
+  background: var(--brand-navy);
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+}
+
+.opex-button-primary:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand-navy-light);
+  background: var(--brand-navy-light);
+  box-shadow: 0 6px 20px rgb(7 21 47 / 12%);
+}
+
+.opex-button-secondary {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 24px;
+  border: 1px solid #d8e0eb;
+  border-radius: var(--radius-button);
+  background: rgb(255 255 255 / 85%);
+  color: var(--brand-navy);
+  font-weight: 500;
+  transition: background 200ms ease, border-color 200ms ease,
+    transform 200ms ease;
+}
+
+.opex-button-secondary:hover {
+  transform: translateY(-1px);
+  border-color: #b7c6dc;
+  background: #ffffff;
+}
+
+/* =========================================
+   CARDS
+   ========================================= */
+
+.opex-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgb(7 21 47 / 2%);
+  transition: border-color 200ms ease, box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+.opex-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: 0 10px 32px rgb(7 21 47 / 6%);
+}
+
+/* =========================================
+   FORM INPUTS
+   ========================================= */
+
+.opex-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: var(--foreground);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.opex-input::placeholder {
+  color: #9aa5b5;
+}
+
+.opex-input:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgb(49 92 170 / 10%);
+}
+
+/* =========================================
+   GLOBAL ANIMATIONS
+   ========================================= */
+
+@keyframes opex-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-opex-fade-up {
+  animation: opex-fade-up 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* =========================================
+   HORIZONTAL COUNTRY MARQUEE
+   Base layout and motion
+   ========================================= */
+
+.marquee-viewport {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.marquee-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  width: max-content;
+  max-width: none;
+  animation: marquee-left 42s linear infinite;
+  will-change: transform;
+}
+
+.marquee-track.marquee-left {
+  animation-name: marquee-left;
+}
+
+.marquee-track.marquee-right {
+  animation-name: marquee-right;
+}
+
+.marquee-track > * {
+  flex: 0 0 auto;
+}
+
+.marquee-viewport:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* =========================================
+   SCROLLBAR
+   ========================================= */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  background-clip: padding-box;
+}
+
+/* =========================================
+   ACCESSIBILITY
+   Do not globally override every animation.
+   This prevents the old wildcard !important
+   rules from freezing the marquee.
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /*
+   * Keep the marquee moving.
+   * Its motion is controlled explicitly here
+   * instead of being overridden by a wildcard.
+   */
+  .marquee-track {
+    animation-duration: 42s;
+    animation-iteration-count: infinite;
+  }
+
+  /*
+   * Reduce non-essential entrance animation.
+   */
+  .animate-opex-fade-up {
+    animation: none;
+  }
 }
