@@ -9,7 +9,8 @@ type NavbarProps = {
 };
 
 const NAV_LINKS = [
-  { label: "Features", href: "#features" },
+  { label: "What We Offer", href: "#features" },
+  { label: "Who It’s For", href: "#who-its-for" },
   { label: "About", href: "#about" },
   { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
@@ -93,7 +94,7 @@ export default function Navbar({ onJoinWaitlist }: NavbarProps) {
           className={`hidden items-center gap-1 overflow-hidden transition-all duration-300 ease-in-out md:flex ${
             scrolled
               ? "pointer-events-none max-w-0 -translate-x-2 opacity-0"
-              : "max-w-[440px] translate-x-0 opacity-100"
+              : "max-w-[620px] translate-x-0 opacity-100"
           }`}
         >
           {NAV_LINKS.map((link) => (
@@ -101,11 +102,7 @@ export default function Navbar({ onJoinWaitlist }: NavbarProps) {
               key={link.label}
               href={link.href}
               tabIndex={scrolled ? -1 : 0}
-              className={`whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium !text-white transition-colors duration-300 hover:!text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] lg:px-3.5 ${
-                scrolled
-                  ? "!text-white hover:!text-white"
-                  : "text-[#07152f] hover:!text-white"
-              }`}
+              className="whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-medium !text-white transition-colors duration-300 hover:!text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] lg:px-3"
             >
               {link.label}
             </Link>
@@ -176,7 +173,7 @@ export default function Navbar({ onJoinWaitlist }: NavbarProps) {
               href={link.href}
               tabIndex={menuOpen ? 0 : -1}
               onClick={closeMenu}
-              className="rounded-2xl px-4 py-3.5 text-sm font-medium !text-white transition-colors duration-200 hover:!text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="rounded-2xl px-4 py-3.5 text-sm font-medium !text-white transition-colors duration-200 hover:bg-white/10 hover:!text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               {link.label}
             </Link>

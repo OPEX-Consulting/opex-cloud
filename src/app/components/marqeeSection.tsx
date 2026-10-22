@@ -126,7 +126,7 @@ export default function MarqueeSection() {
         }`}
       >
         <h2 className="mt-2 text-xl font-semibold tracking-tight text-[#07152f] sm:text-2xl">
-          Built for Africa. Accessible across borders.
+          Built for Nigeria. Accessible across borders.
         </h2>
       </div>
 
