@@ -114,7 +114,6 @@ export default function FaqSection() {
 
             <a href="#contact" className="faq-contact-link">
               Talk to our team
-              <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
