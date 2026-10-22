@@ -16,6 +16,8 @@ type WaitlistModalProps = {
   onSuccess?: (data: WaitlistFormData) => void;
 };
 
+const GOOGLE_APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbwGE3hw9fltDsk5Cms0E9TRdKgRfDMz5LK-8IA80PSVZc21btu_G8-qGbVs8BOKZZYT/exec";
 const REFERRAL_OPTIONS = [
   "Conference",
   "Google",
@@ -80,6 +82,7 @@ export default function WaitlistModal({
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<WaitlistFormData>(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -93,7 +96,7 @@ export default function WaitlistModal({
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !submitting) {
         onClose?.();
       }
     };
@@ -104,13 +107,14 @@ export default function WaitlistModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, submitting]);
 
   useEffect(() => {
     if (isOpen) {
       setStep(0);
       setFormData(INITIAL_FORM);
       setSubmitted(false);
+      setSubmitting(false);
       setError("");
     }
   }, [isOpen]);
@@ -130,6 +134,8 @@ export default function WaitlistModal({
 
   const handleContinue = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitting) return;
+
     setError("");
 
     const value = formData[currentQuestion.field].trim();
@@ -152,10 +158,12 @@ export default function WaitlistModal({
       return;
     }
 
-    handleSubmit();
+    void handleSubmit();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (submitting) return;
+
     const submission: WaitlistFormData = {
       fullName: formData.fullName.trim(),
       workEmail: formData.workEmail.trim(),
@@ -163,17 +171,58 @@ export default function WaitlistModal({
       referralSource: formData.referralSource,
     };
 
-    /*
-     * Connect your waitlist API here before production.
-     * This example currently handles the submission locally;
-     * it does not save registrations to a database.
-     */
+    setSubmitting(true);
+    setError("");
 
-    onSuccess?.(submission);
-    setSubmitted(true);
+    try {
+      if (
+        !GOOGLE_APPS_SCRIPT_URL.startsWith(
+          "https://script.google.com/macros/s/"
+        )
+      ) {
+        throw new Error(
+          "Please configure your Google Apps Script Web App URL."
+        );
+      }
+
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: "POST",
+        // text/plain avoids a browser CORS preflight request.
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify(submission),
+        redirect: "follow",
+      });
+
+      if (!response.ok) {
+        throw new Error("We couldn't submit your details. Please try again.");
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Unable to save your registration.");
+      }
+
+      onSuccess?.(submission);
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Waitlist submission failed:", err);
+
+      setError(
+        err instanceof Error && err.message.startsWith("Please configure")
+          ? err.message
+          : "We couldn't submit your details. Please check your connection and try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleBack = () => {
+    if (submitting) return;
+
     setError("");
 
     if (step > 0) {
@@ -187,7 +236,7 @@ export default function WaitlistModal({
     <div
       className="waitlist-overlay fixed inset-0 z-[100] flex items-end justify-center overflow-hidden bg-black/40 px-0 pt-6 pb-0 backdrop-blur-xl sm:items-center sm:overflow-y-auto sm:px-6 sm:py-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (event.target === event.currentTarget && !submitting) {
           onClose?.();
         }
       }}
@@ -196,7 +245,7 @@ export default function WaitlistModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${inputId}-title`}
-        className="waitlist-modal relative mt-auto flex max-h-[92dvh] w-full max-w-[470px] flex-col overflow-hidden rounded-t-[28px] border border-white/70 bg-white shadow-[0_-12px_60px_rgba(0,0,0,0.14)] pb-[env(safe-area-inset-bottom)] sm:my-auto sm:max-h-[90dvh] sm:rounded-[32px] sm:shadow-[0_24px_80px_rgba(0,0,0,0.16)]"
+        className="waitlist-modal relative mt-auto flex max-h-[92dvh] w-full max-w-[470px] flex-col overflow-hidden rounded-t-[28px] border border-white/70 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_60px_rgba(0,0,0,0.14)] sm:my-auto sm:max-h-[90dvh] sm:rounded-[32px] sm:shadow-[0_24px_80px_rgba(0,0,0,0.16)]"
       >
         {/* Mobile bottom-sheet handle */}
         <div className="flex shrink-0 justify-center pt-3 sm:hidden">
@@ -208,8 +257,9 @@ export default function WaitlistModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={submitting}
             aria-label="Close waitlist form"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f5f5f7] text-[#6e6e73] transition-colors hover:bg-[#e8e8ed] hover:text-[#1d1d1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315caa]"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f5f5f7] text-[#6e6e73] transition-colors hover:bg-[#e8e8ed] hover:text-[#1d1d1f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315caa] disabled:opacity-50"
           >
             <svg
               viewBox="0 0 24 24"
@@ -261,7 +311,7 @@ export default function WaitlistModal({
 
               <p className="mt-4 max-w-sm text-[15px] leading-7 text-[#6e6e73]">
                 Thanks for your interest in Opex Cloud. Your details have been
-                received in this session.
+                successfully submitted to our waitlist.
               </p>
 
               <button
@@ -296,10 +346,11 @@ export default function WaitlistModal({
                     aria-label={currentQuestion.title}
                     autoComplete="off"
                     value={formData.referralSource}
+                    disabled={submitting}
                     onChange={(event) =>
                       updateField("referralSource", event.target.value)
                     }
-                    className="min-h-[54px] w-full appearance-none rounded-2xl border border-transparent bg-[#f5f5f7] px-4 text-[15px] text-[#1d1d1f] outline-none transition-colors focus:border-[#315caa] focus:bg-white"
+                    className="min-h-[54px] w-full appearance-none rounded-2xl border border-transparent bg-[#f5f5f7] px-4 text-[15px] text-[#1d1d1f] outline-none transition-colors focus:border-[#315caa] focus:bg-white disabled:opacity-60"
                   >
                     <option value="" disabled>
                       {currentQuestion.placeholder}
@@ -320,15 +371,19 @@ export default function WaitlistModal({
                     autoComplete={currentQuestion.autocomplete}
                     placeholder={currentQuestion.placeholder}
                     value={formData[currentQuestion.field]}
+                    disabled={submitting}
                     onChange={(event) =>
                       updateField(currentQuestion.field, event.target.value)
                     }
-                    className="min-h-[54px] w-full rounded-2xl border border-transparent bg-[#f5f5f7] px-4 text-[15px] text-[#1d1d1f] outline-none transition-colors placeholder:text-[#86868b] focus:border-[#315caa] focus:bg-white"
+                    className="min-h-[54px] w-full rounded-2xl border border-transparent bg-[#f5f5f7] px-4 text-[15px] text-[#1d1d1f] outline-none transition-colors placeholder:text-[#86868b] focus:border-[#315caa] focus:bg-white disabled:opacity-60"
                   />
                 )}
 
                 {error && (
-                  <p role="alert" className="mt-3 text-sm text-red-600">
+                  <p
+                    role="alert"
+                    className="mt-3 text-sm leading-5 text-red-600"
+                  >
                     {error}
                   </p>
                 )}
@@ -338,16 +393,20 @@ export default function WaitlistModal({
                 <button
                   type="button"
                   onClick={handleBack}
-                  className="flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#e5e5ea] bg-white px-5 text-sm font-medium text-[#1d1d1f] transition-colors hover:bg-[#f5f5f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315caa]"
+                  disabled={submitting}
+                  className="flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#e5e5ea] bg-white px-5 text-sm font-medium text-[#1d1d1f] transition-colors hover:bg-[#f5f5f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315caa] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {step === 0 ? "Cancel" : "Back"}
                 </button>
 
                 <button
                   type="submit"
-                  className="flex min-h-12 flex-[1.4] items-center justify-center rounded-full bg-[#07152f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#10264c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315caa] focus-visible:ring-offset-2"
+                  disabled={submitting}
+                  className="flex min-h-12 flex-[1.4] items-center justify-center rounded-full bg-[#07152f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#10264c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315caa] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {step === QUESTIONS.length - 1
+                  {submitting
+                    ? "Submitting..."
+                    : step === QUESTIONS.length - 1
                     ? "Join the waitlist"
                     : "Continue"}
                 </button>
