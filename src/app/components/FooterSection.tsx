@@ -1,108 +1,75 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-type FooterSectionProps = {
-  onJoinWaitlist: () => void;
-};
+const footerLinks = [
+  { label: "Solutions", href: "#solutions" },
+  { label: "Services", href: "#services" },
+  { label: "Platform", href: "#platform" },
+  { label: "Trust", href: "#trust" },
+];
 
-const footerLinks = {
-  Explore: [
-    { label: "About Opex Cloud", href: "#about" },
-    { label: "Features", href: "#features" },
-    { label: "FAQ", href: "#faq" },
-  ],
-  GetStarted: [
-    { label: "Join early access", href: "#early-access" },
-    { label: "Talk to us", href: "#contact" },
-  ],
-};
-
-export default function FooterSection({ onJoinWaitlist }: FooterSectionProps) {
+export default function FooterSection() {
   const currentYear = new Date().getFullYear();
+  const routerInterface = useRouter();
 
   return (
     <footer
       id="footer"
-      className="relative overflow-hidden bg-[#07152f] px-5 pb-0 pt-16 text-white sm:px-8 sm:pt-20 lg:px-12"
+      className="relative overflow-hidden bg-[#07152f] px-5 pt-16 text-white sm:px-8 sm:pt-20 lg:px-12"
     >
-      <div className="relative mx-auto max-w-7xl">
-        <div className="grid gap-12 border-b border-white/10 pb-12 sm:pb-16 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:gap-10">
+      <div className="relative z-10 mx-auto max-w-7xl">
+        {/* Main footer */}
+        <div className="grid gap-12 border-b border-white/10 pb-12 sm:pb-14 lg:grid-cols-[1.5fr_1fr_1.2fr] lg:gap-12">
           {/* Brand */}
           <div className="max-w-sm">
-            <a
-              href="#home"
-              aria-label="Opex Cloud home"
-              className="inline-flex items-center rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-blue-400"
+            <Link
+              href="/"
+              aria-label="OPEX Cloud home"
+              className="inline-flex rounded-lg transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8]"
             >
               <Image
                 src="/images/opexwhite.webp"
-                alt="Opex Cloud"
+                alt="OPEX Cloud"
                 width={160}
                 height={48}
-                className="h-10 w-auto object-contain object-left"
+                priority={false}
+                className="h-9 w-auto object-contain object-left sm:h-10"
               />
-            </a>
+            </Link>
 
             <p className="mt-5 max-w-xs text-sm leading-7 text-slate-300">
-              Cloud infrastructure, made simpler for Nigerian businesses. We’re
-              preparing a more straightforward way to approach the cloud.
+              Enterprise cloud infrastructure, built for Nigeria. OPEX Cloud
+              helps organisations approach cloud infrastructure with practical
+              guidance and a clear path from planning to implementation.
             </p>
 
             <button
               type="button"
-              onClick={onJoinWaitlist}
-              className="mt-6 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold !text-[#07152f] transition-colors duration-200 hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07152f]"
+              onClick={() => routerInterface.push("/onboarding")}
+              className="mt-6 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold !text-[#07152f] transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07152f]"
             >
-              Join early access
+              Talk to a Cloud Expert
             </button>
           </div>
 
-          {/* Explore */}
+          {/* Navigation links */}
           <div>
             <h2 className="text-sm font-semibold tracking-wide text-white">
-              Explore
+              Explore OPEX Cloud
             </h2>
 
             <ul className="mt-5 space-y-3.5">
-              {footerLinks.Explore.map((link) => (
+              {footerLinks.map((link) => (
                 <li key={link.label}>
-                  <a
+                  <Link
                     href={link.href}
-                    className="text-sm text-slate-300 transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none"
+                    className="text-sm leading-6 text-slate-300 transition-colors duration-200 hover:text-white focus-visible:outline-none focus-visible:text-white"
                   >
                     {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Get started */}
-          <div>
-            <h2 className="text-sm font-semibold tracking-wide text-white">
-              Get started
-            </h2>
-
-            <ul className="mt-5 space-y-3.5">
-              {footerLinks.GetStarted.map((link) => (
-                <li key={link.label}>
-                  {link.label === "Join early access" ? (
-                    <button
-                      type="button"
-                      onClick={onJoinWaitlist}
-                      className="cursor-pointer text-left text-sm text-slate-300 transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none"
-                    >
-                      {link.label}
-                    </button>
-                  ) : (
-                    <a
-                      href={link.href}
-                      className="text-sm text-slate-300 transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none"
-                    >
-                      {link.label}
-                    </a>
-                  )}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -111,58 +78,70 @@ export default function FooterSection({ onJoinWaitlist }: FooterSectionProps) {
           {/* Contact */}
           <div>
             <h2 className="text-sm font-semibold tracking-wide text-white">
-              Get in touch
+              Talk to our team
             </h2>
 
             <p className="mt-5 max-w-xs text-sm leading-6 text-slate-300">
-              Have a cloud requirement or want to learn more about the upcoming
-              launch? We’d be happy to hear from you.
+              Discuss your infrastructure, migration plans, workload
+              requirements or cloud assessment with our team.
             </p>
 
-            <a
-              href="mailto:REPLACE_WITH_OFFICIAL_EMAIL"
-              className="mt-4 inline-flex break-all text-sm font-medium text-blue-300 underline decoration-blue-300/30 underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            <button
+              type="button"
+              onClick={() => routerInterface.push("/support")}
+              className="mt-5 inline-flex min-h-10 items-center rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-blue-300 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8]"
             >
-              Contact our team
-            </a>
+              Contact OPEX Cloud
+            </button>
+
+            <p className="mt-5 text-xs leading-5 text-slate-400">
+              A cloud services business of OPEX Consulting Limited.
+            </p>
           </div>
         </div>
 
         {/* Bottom bar */}
         <div className="flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs leading-5 text-slate-400">
-            © {currentYear} Opex Cloud. All rights reserved.
+            © {currentYear} OPEX Cloud. All rights reserved.
           </p>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <a
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <Link
               href="/privacy"
-              className="text-xs text-slate-400 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+              className="text-xs text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
             >
-              Privacy policy
-            </a>
+              Privacy Policy
+            </Link>
 
-            <a
+            <Link
+              href="/cookies"
+              className="text-xs text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
+            >
+              Cookie Policy
+            </Link>
+
+            <Link
               href="/terms"
-              className="text-xs text-slate-400 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+              className="text-xs text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
             >
-              Terms of service
-            </a>
+              Terms of Service
+            </Link>
 
-            <a
-              href="#home"
-              className="text-xs font-medium text-slate-300 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+            <Link
+              href="/#top"
+              className="text-xs font-medium text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:text-white"
             >
               Back to top
-            </a>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Large, faint OPEX CLOUD wordmark */}
+      {/* Subtle oversized wordmark */}
       <div
         aria-hidden="true"
-        className="pointer-events-none select-none overflow-hidden border-t border-white/[0.06] pt-2"
+        className="pointer-events-none select-none overflow-hidden border-t border-white/[0.06] pt-3"
       >
         <div className="mx-auto max-w-[1600px]">
           <p className="whitespace-nowrap text-center text-[19vw] font-semibold leading-[0.82] tracking-[-0.095em] text-white/[0.045] sm:text-[18vw] lg:text-[17.2vw]">

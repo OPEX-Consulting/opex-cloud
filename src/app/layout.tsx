@@ -17,43 +17,48 @@ const geistMono = Geist_Mono({
   preload: true,
 });
 
-const siteUrl = "https://cloud.opexconsult.com";
+const siteUrl = "https://opexcloud.com.ng";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: "Opex Cloud | Cloud Infrastructure for Nigerian Businesses",
-    template: "%s | Opex Cloud",
+    default: "OPEX Cloud | Enterprise Cloud Infrastructure in Nigeria",
+    template: "%s | OPEX Cloud",
   },
 
   description:
-    "Discover Opex Cloud, the cloud infrastructure service being prepared by Opex Consulting for Nigerian businesses. Get updates on planned managed infrastructure, local support, Naira billing, migration assistance, and data residency.",
+    "OPEX Cloud provides enterprise cloud infrastructure for Nigeria, with virtual private cloud, compute, storage, networking, cloud migration, security, and managed infrastructure services from OPEX Consulting Limited.",
 
-  applicationName: "Opex Cloud",
+  applicationName: "OPEX Cloud",
 
   keywords: [
-    "Opex Cloud",
-    "Opex Consulting",
-    "cloud infrastructure Nigeria",
+    "OPEX Cloud",
+    "OPEX Consulting Limited",
+    "enterprise cloud infrastructure Nigeria",
     "cloud services Nigeria",
-    "managed cloud infrastructure",
-    "Naira cloud billing",
+    "virtual private cloud Nigeria",
+    "VPC Nigeria",
+    "cloud compute",
+    "cloud storage",
+    "private cloud networking",
+    "managed cloud services",
     "cloud migration Nigeria",
+    "cloud security",
+    "backup and disaster recovery",
     "data residency Nigeria",
-    "cloud hosting for businesses",
-    "Nigerian businesses",
+    "enterprise infrastructure",
   ],
 
   authors: [
     {
-      name: "Opex Consulting",
+      name: "OPEX Consulting Limited",
       url: "https://opexconsult.com",
     },
   ],
 
-  creator: "Opex Consulting",
-  publisher: "Opex Consulting",
+  creator: "OPEX Consulting Limited",
+  publisher: "OPEX Consulting Limited",
 
   alternates: {
     canonical: "/",
@@ -63,25 +68,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_NG",
     url: siteUrl,
-    siteName: "Opex Cloud",
-    title: "Opex Cloud | Cloud Infrastructure, Made Simpler",
+    siteName: "OPEX Cloud",
+    title: "OPEX Cloud | Enterprise Cloud Infrastructure. Built for Nigeria.",
     description:
-      "Cloud infrastructure, made simpler for Nigerian businesses. Join the Opex Cloud early-access list for launch updates, local support, and planned Naira billing.",
+      "Enterprise cloud infrastructure, migration, security, and managed services for organisations operating in Nigeria.",
     images: [
       {
         url: "/images/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Opex Cloud — Cloud infrastructure for Nigerian businesses",
+        alt: "OPEX Cloud — Enterprise Cloud Infrastructure. Built for Nigeria.",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Opex Cloud | Cloud Infrastructure, Made Simpler",
+    title: "OPEX Cloud | Enterprise Cloud Infrastructure",
     description:
-      "A simpler approach to cloud infrastructure for Nigerian businesses. Join the Opex Cloud early-access list.",
+      "Enterprise cloud infrastructure, migration, and managed services for organisations in Nigeria.",
     images: ["/images/og-image.png"],
   },
 
@@ -103,8 +108,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#030303",
-  colorScheme: "dark",
+  themeColor: "#eaf1f9",
+  colorScheme: "light",
 };
 
 export default function RootLayout({

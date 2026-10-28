@@ -4,44 +4,34 @@ import { useEffect, useRef, useState } from "react";
 
 const faqs = [
   {
-    question: "When will Opex Cloud launch?",
+    question: "What is OPEX Cloud?",
     answer:
-      "Opex Cloud is currently in preparation. Join our early-access list to receive launch updates, product announcements, and information about availability as details are confirmed.",
+      "OPEX Cloud is the cloud services business of OPEX Consulting Limited, providing enterprise cloud infrastructure for organisations operating in Nigeria and the wider African market.",
   },
   {
-    question: "Who is Opex Cloud for?",
+    question: "What services does OPEX Cloud offer?",
     answer:
-      "We’re building Opex Cloud with Nigerian businesses in mind, including growing companies, professional services firms, and technology teams looking for a simpler approach to cloud infrastructure.",
+      "The current offering centres on Virtual Private Cloud (VPC) and Pay-As-You-Go (PAYG). Architecture, migration, security, and managed services are also part of the broader service direction, subject to the agreed scope.",
   },
   {
-    question: "Can you help us move our existing systems to the cloud?",
+    question: "How does Pay-As-You-Go (PAYG) work?",
     answer:
-      "Migration support is part of what we’re planning. Every organisation has different systems, workloads, and requirements, so the right approach will depend on your current setup and the services available at launch.",
+      "PAYG is a usage-based approach to cloud services. Pricing, billable resources, and payment terms will be confirmed by the OPEX Cloud team based on the available offering.",
   },
   {
-    question: "Will my data be hosted in Nigeria?",
+    question: "Can you help us migrate to the cloud?",
     answer:
-      "Data location is an important consideration. The hosting locations and available deployment options will be confirmed before launch. If your organisation has specific data residency or regulatory requirements, contact us to discuss them.",
+      "OPEX can discuss your existing infrastructure, workload requirements, and migration needs to determine an appropriate approach and the support required.",
   },
   {
-    question: "Will I be able to pay in Naira?",
+    question: "How do you handle security and data residency?",
     answer:
-      "Naira billing is part of the experience we’re working towards. We’ll publish confirmed pricing, billing options, and any applicable charges before the service becomes available.",
+      "Security and data location are important considerations in cloud planning. Hosting locations, available security controls, backup arrangements, and relevant responsibilities should be confirmed for your specific requirements.",
   },
   {
-    question: "Will I receive support from a local team?",
+    question: "How do we get started?",
     answer:
-      "Local guidance and support are central to the direction of Opex Cloud. We’ll share details about support channels, availability, and service arrangements as they are finalised.",
-  },
-  {
-    question: "Do I need technical expertise to get started?",
-    answer:
-      "Our goal is to make cloud infrastructure easier to understand and manage. You can tell us about your business needs during early access, and we’ll provide more information about the onboarding process as it becomes available.",
-  },
-  {
-    question: "How can my business get early access?",
-    answer:
-      "Use the early-access form on this page to register your interest. We’ll use the details you provide to share relevant updates and information about the next steps.",
+      "Speak with a Cloud Expert to discuss your organisation, infrastructure, workloads, and business requirements. The team can help identify suitable next steps and discuss assessment or quotation options.",
   },
 ];
 
@@ -61,7 +51,16 @@ export default function FaqSection() {
 
   useEffect(() => {
     const section = sectionRef.current;
+
     if (!section) return;
+
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
+      setIsVisible(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -87,15 +86,17 @@ export default function FaqSection() {
     >
       <div className="faq-container">
         <div className="faq-intro">
+          <span className="faq-eyebrow">OPEX CLOUD · FAQ</span>
+
           <h2 id="faq-heading">
-            A few things
+            Questions,
             <br />
-            <span>worth knowing.</span>
+            <span>answered.</span>
           </h2>
 
           <p className="faq-description">
-            Getting started with cloud shouldn’t feel complicated. Here are some
-            answers to help you understand what we’re building.
+            The essentials about our cloud offering, services, and how to get
+            started.
           </p>
 
           <div className="faq-contact-card">
@@ -104,16 +105,16 @@ export default function FaqSection() {
             </div>
 
             <p className="faq-contact-title">
-              Have a question we haven’t answered?
+              Need advice for your infrastructure?
             </p>
 
             <p className="faq-contact-description">
-              Tell us what your business needs, and we’ll help you find out more
-              about Opex Cloud.
+              Tell us what your organisation needs, and we can discuss the right
+              next steps.
             </p>
 
             <a href="#contact" className="faq-contact-link">
-              Talk to our team
+              Talk to a Cloud Expert
             </a>
           </div>
         </div>
@@ -130,7 +131,7 @@ export default function FaqSection() {
                 className={`faq-item ${isOpen ? "is-open" : ""}`}
                 style={
                   {
-                    "--item-delay": `${Math.min(index * 70, 490)}ms`,
+                    "--item-delay": `${index * 65}ms`,
                   } as React.CSSProperties
                 }
               >
@@ -173,8 +174,7 @@ export default function FaqSection() {
       <style jsx>{`
         .faq-section {
           position: relative;
-          overflow: hidden;
-          padding: 112px 24px;
+          padding: 100px 24px;
           background: #f8fafc;
           color: #07152f;
         }
@@ -183,67 +183,48 @@ export default function FaqSection() {
           display: grid;
           grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
           align-items: start;
-          gap: 88px;
+          gap: 72px;
           width: 100%;
-          max-width: 1200px;
+          max-width: 1160px;
           margin: 0 auto;
         }
-
-        /* Zoom-in entrance */
 
         .faq-intro,
         .faq-item {
           opacity: 0;
-          transform: translateY(24px) scale(0.97);
-          transition: opacity 750ms cubic-bezier(0.2, 0.65, 0.3, 1),
-            transform 750ms cubic-bezier(0.2, 0.65, 0.3, 1);
+          transform: translateY(18px);
+          transition: opacity 650ms cubic-bezier(0.2, 0.65, 0.3, 1),
+            transform 650ms cubic-bezier(0.2, 0.65, 0.3, 1);
         }
 
         .faq-section.is-visible .faq-intro,
         .faq-section.is-visible .faq-item {
           opacity: 1;
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
         }
 
         .faq-intro {
           position: sticky;
           top: 100px;
-          transition-delay: 80ms;
+          transition-delay: 60ms;
         }
 
         .faq-section.is-visible .faq-item {
           transition-delay: var(--item-delay, 0ms);
         }
 
-        /* Section label and eyebrow */
-
-        .faq-label {
-          display: inline-flex;
-          align-items: center;
-          min-height: 32px;
-          padding: 7px 12px;
-          border: 1px solid #e3e8ef;
-          border-radius: 999px;
-          background: #ffffff;
-          color: #3977e8;
-          font-size: 11px;
-          font-weight: 650;
-          letter-spacing: 0.025em;
-        }
-
         .faq-eyebrow {
-          display: block;
-          margin-top: 28px;
+          display: inline-block;
           color: #3977e8;
           font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.18em;
-          line-height: 1.5;
+          letter-spacing: 0.15em;
+          line-height: 1.8;
         }
 
         .faq-intro h2 {
-          margin: 14px 0 0;
-          font-size: clamp(38px, 4.2vw, 58px);
+          margin: 18px 0 0;
+          font-size: clamp(38px, 4.2vw, 56px);
           font-weight: 650;
           line-height: 1.08;
           letter-spacing: -0.06em;
@@ -254,78 +235,78 @@ export default function FaqSection() {
         }
 
         .faq-description {
-          max-width: 420px;
-          margin: 22px 0 0;
+          max-width: 390px;
+          margin: 20px 0 0;
           color: #647084;
-          font-size: 15px;
-          line-height: 1.9;
+          font-size: 14px;
+          line-height: 1.85;
         }
 
-        /* Contact card */
-
         .faq-contact-card {
-          margin-top: 34px;
-          padding: 24px;
+          margin-top: 30px;
+          padding: 22px;
           border: 1px solid #e7ebf0;
-          border-radius: 20px;
+          border-radius: 18px;
           background: #ffffff;
-          transition: transform 300ms ease, border-color 300ms ease,
-            box-shadow 300ms ease;
+          transition: transform 250ms ease, border-color 250ms ease,
+            box-shadow 250ms ease;
         }
 
         .faq-contact-card:hover {
-          transform: scale(1.025);
+          transform: translateY(-3px);
           border-color: #d8e2f0;
-          box-shadow: 0 12px 32px rgba(7, 21, 47, 0.045);
+          box-shadow: 0 10px 28px rgba(7, 21, 47, 0.045);
         }
 
         .faq-contact-mark {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
+          width: 34px;
+          height: 34px;
           border: 1px solid #e5eaf1;
-          border-radius: 12px;
+          border-radius: 11px;
           background: #f8fafc;
           color: #3977e8;
-          font-size: 17px;
+          font-size: 16px;
           font-weight: 600;
         }
 
         .faq-contact-title {
-          margin: 19px 0 0;
+          margin: 16px 0 0;
           color: #07152f;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 650;
           line-height: 1.6;
         }
 
         .faq-contact-description {
-          margin: 8px 0 0;
+          margin: 7px 0 0;
           color: #778195;
-          font-size: 13px;
+          font-size: 12px;
           line-height: 1.8;
         }
 
         .faq-contact-link {
           display: inline-flex;
           align-items: center;
-          gap: 9px;
-          margin-top: 20px;
+          margin-top: 16px;
           color: #3977e8;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 650;
           text-decoration: none;
-          transition: gap 200ms ease, color 200ms ease;
+          transition: color 200ms ease;
         }
 
         .faq-contact-link:hover {
-          gap: 13px;
           color: #245ac2;
         }
 
-        /* Accordion */
+        .faq-contact-link:focus-visible {
+          outline: 2px solid #3977e8;
+          outline-offset: 5px;
+          border-radius: 3px;
+        }
 
         .faq-list {
           border-top: 1px solid #e0e5ec;
@@ -343,33 +324,29 @@ export default function FaqSection() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 22px;
+          gap: 20px;
           width: 100%;
-          padding: 23px 0;
+          padding: 21px 0;
           border: 0;
-          border-radius: 12px;
+          border-radius: 10px;
           background: transparent;
           color: #07152f;
           text-align: left;
           cursor: pointer;
-          outline: none;
         }
 
         .faq-question-text {
-          display: inline-block;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
           line-height: 1.65;
-          letter-spacing: -0.025em;
-          transition: color 250ms ease, transform 250ms ease;
+          letter-spacing: -0.02em;
+          transition: color 200ms ease;
         }
 
         .faq-question:hover .faq-question-text,
         .faq-question:focus-visible .faq-question-text,
         .faq-item.is-open .faq-question-text {
           color: #3977e8;
-          transform: scale(1.025);
-          transform-origin: left center;
         }
 
         .faq-question:focus-visible {
@@ -383,22 +360,22 @@ export default function FaqSection() {
           flex-shrink: 0;
           align-items: center;
           justify-content: center;
-          width: 34px;
-          height: 34px;
+          width: 32px;
+          height: 32px;
           border: 1px solid #e6eaf0;
           border-radius: 50%;
           background: #ffffff;
-          transition: transform 350ms cubic-bezier(0.2, 0.75, 0.25, 1),
-            background 250ms ease, border-color 250ms ease;
+          transition: transform 300ms ease, background 200ms ease,
+            border-color 200ms ease;
         }
 
         .faq-icon span {
           position: absolute;
-          width: 12px;
+          width: 11px;
           height: 1.5px;
           border-radius: 99px;
           background: #647084;
-          transition: transform 300ms ease, background 250ms ease;
+          transition: transform 250ms ease, background 200ms ease;
         }
 
         .faq-icon span:nth-child(2) {
@@ -406,7 +383,7 @@ export default function FaqSection() {
         }
 
         .faq-item.is-open .faq-icon {
-          transform: rotate(180deg) scale(1.06);
+          transform: rotate(180deg);
           border-color: #d9e6fb;
           background: #edf4ff;
         }
@@ -421,7 +398,7 @@ export default function FaqSection() {
 
         .faq-answer-wrapper {
           display: grid;
-          transition: grid-template-rows 420ms cubic-bezier(0.2, 0.65, 0.3, 1);
+          transition: grid-template-rows 350ms cubic-bezier(0.2, 0.65, 0.3, 1);
         }
 
         .faq-answer-inner {
@@ -429,33 +406,33 @@ export default function FaqSection() {
         }
 
         .faq-answer {
-          max-width: 620px;
+          max-width: 600px;
           margin: 0;
           padding: 0 42px 0 0;
           color: #697588;
-          font-size: 14px;
-          line-height: 1.9;
+          font-size: 13px;
+          line-height: 1.85;
           opacity: 0;
-          transform: translateY(-8px);
-          transition: opacity 300ms ease, transform 350ms ease,
-            padding 350ms ease;
+          transform: translateY(-5px);
+          transition: opacity 250ms ease, transform 300ms ease,
+            padding 300ms ease;
         }
 
         .faq-item.is-open .faq-answer {
-          padding-bottom: 25px;
+          padding-bottom: 22px;
           opacity: 1;
           transform: translateY(0);
-          transition-delay: 80ms;
+          transition-delay: 40ms;
         }
 
         @media (max-width: 1000px) {
           .faq-section {
-            padding: 88px 24px;
+            padding: 80px 24px;
           }
 
           .faq-container {
             grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-            gap: 44px;
+            gap: 40px;
           }
 
           .faq-intro h2 {
@@ -463,60 +440,55 @@ export default function FaqSection() {
           }
 
           .faq-contact-card {
-            padding: 20px;
+            padding: 18px;
           }
         }
 
         @media (max-width: 760px) {
           .faq-section {
-            padding: 76px 20px;
+            padding: 68px 20px;
           }
 
           .faq-container {
             grid-template-columns: 1fr;
-            gap: 44px;
+            gap: 34px;
           }
 
           .faq-intro {
             position: static;
           }
 
-          .faq-eyebrow {
-            margin-top: 24px;
-          }
-
           .faq-intro h2 {
-            margin-top: 12px;
-            font-size: clamp(40px, 9vw, 54px);
+            margin-top: 14px;
+            font-size: clamp(38px, 9vw, 50px);
           }
 
           .faq-description {
-            font-size: 14px;
-            line-height: 1.85;
+            font-size: 13px;
           }
 
           .faq-contact-card {
-            margin-top: 26px;
+            margin-top: 22px;
           }
 
           .faq-question {
             gap: 14px;
-            padding: 21px 0;
+            padding: 18px 0;
           }
 
           .faq-question-text {
-            font-size: 14px;
+            font-size: 13px;
           }
 
           .faq-icon {
-            width: 31px;
-            height: 31px;
+            width: 30px;
+            height: 30px;
           }
 
           .faq-answer {
-            padding-right: 12px;
-            font-size: 13px;
-            line-height: 1.85;
+            padding-right: 8px;
+            font-size: 12px;
+            line-height: 1.8;
           }
         }
 
@@ -538,9 +510,7 @@ export default function FaqSection() {
             transition: none;
           }
 
-          .faq-contact-card:hover,
-          .faq-question:hover .faq-question-text,
-          .faq-question:focus-visible .faq-question-text {
+          .faq-contact-card:hover {
             transform: none;
           }
         }

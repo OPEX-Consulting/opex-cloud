@@ -6,51 +6,57 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 const FEATURES = [
   {
     number: "01",
-    title: "Local Data Residency",
+    title: "Virtual Private Cloud",
     description:
-      "Keep your business data closer to home with infrastructure designed around local requirements and reliable access.",
-    icon: "residency",
+      "Create an isolated cloud network for your workloads, with networking controls designed to support more structured infrastructure environments.",
+    icon: "network",
     theme: "light",
+    label: "Networking",
   },
   {
     number: "02",
-    title: "Data Colocation",
+    title: "Cloud Compute",
     description:
-      "Place your servers in a professionally managed environment built for dependable power, connectivity, and security.",
-    icon: "colocation",
+      "Run applications, business services and workloads on virtual machines suited to your infrastructure requirements.",
+    icon: "compute",
     theme: "blue",
+    label: "Virtual machines",
   },
   {
     number: "03",
-    title: "Infrastructure as a Service",
+    title: "Cloud Storage",
     description:
-      "Scale computing, storage, and networking resources to match your business needs without unnecessary complexity.",
-    icon: "infrastructure",
+      "Use persistent block storage for applications and workloads that need dedicated storage resources.",
+    icon: "storage",
     theme: "dark",
+    label: "Block storage",
   },
   {
     number: "04",
-    title: "Cloud Hosting Services",
+    title: "Security & Access",
     description:
-      "Host your websites, applications, and workloads on infrastructure designed for performance and availability.",
-    icon: "hosting",
+      "Use security groups and network-level controls to help define how workloads communicate within your cloud environment.",
+    icon: "security",
     theme: "light",
+    label: "Security groups",
   },
   {
     number: "05",
-    title: "Managed Cloud Services",
+    title: "Monitoring & Visibility",
     description:
-      "Get practical support with cloud operations, monitoring, maintenance, and the everyday work of keeping systems running.",
-    icon: "managed",
+      "Gain operational visibility through monitoring, metrics and alerts that help your team understand infrastructure activity.",
+    icon: "monitoring",
     theme: "blue",
+    label: "Metrics & alerts",
   },
   {
     number: "06",
-    title: "Cloud Consulting",
+    title: "Snapshots & Protection",
     description:
-      "Make informed infrastructure decisions with guidance on cloud adoption, migration, architecture, and optimisation.",
-    icon: "consulting",
+      "Use snapshots and protection capabilities as part of a considered approach to safeguarding workloads and planning recovery.",
+    icon: "protection",
     theme: "light",
+    label: "Data protection",
   },
 ] as const;
 
@@ -66,15 +72,17 @@ function ServiceIcon({ name }: { name: ServiceIconName }) {
   };
 
   switch (name) {
-    case "residency":
+    case "network":
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-          <path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z" />
-          <path d="m4.5 7.8 7.5 4.4 7.5-4.4M12 12.2V21" />
+          <rect x="8" y="3.5" width="8" height="5.5" rx="1.5" />
+          <rect x="2.5" y="15" width="7" height="5.5" rx="1.5" />
+          <rect x="14.5" y="15" width="7" height="5.5" rx="1.5" />
+          <path d="M12 9v3H6v3m6-3h6v3" />
         </svg>
       );
 
-    case "colocation":
+    case "compute":
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
           <rect x="4" y="3.5" width="16" height="7" rx="1.8" />
@@ -83,37 +91,36 @@ function ServiceIcon({ name }: { name: ServiceIconName }) {
         </svg>
       );
 
-    case "infrastructure":
+    case "storage":
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-          <rect x="8" y="3.5" width="8" height="6" rx="1.5" />
-          <rect x="3" y="15" width="7" height="5.5" rx="1.5" />
-          <rect x="14" y="15" width="7" height="5.5" rx="1.5" />
-          <path d="M12 9.5v2.5M6.5 15v-3h11v3" />
+          <ellipse cx="12" cy="5.5" rx="8" ry="3" />
+          <path d="M4 5.5v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" />
+          <path d="M4 11.5v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" />
         </svg>
       );
 
-    case "hosting":
+    case "security":
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-          <path d="M7.2 18.5h10.1a4.1 4.1 0 0 0 .3-8.2 5.8 5.8 0 0 0-11.2-1.1 4.6 4.6 0 0 0 .8 9.3Z" />
-          <path d="M9 14.5h6M12 12v5" />
+          <path d="M12 3 19 5.7v5.6c0 4.4-2.8 7.5-7 9.7-4.2-2.2-7-5.3-7-9.7V5.7L12 3Z" />
+          <path d="m9 12 2 2 4-4" />
         </svg>
       );
 
-    case "managed":
+    case "monitoring":
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-          <circle cx="12" cy="12" r="8.5" />
-          <path d="M8.5 12.2 11 14.7l5-5.4" />
+          <rect x="3" y="4" width="18" height="15" rx="2" />
+          <path d="M7 12h2.5l2-4 3.2 7 2-3H19M8 22h8M12 19v3" />
         </svg>
       );
 
-    case "consulting":
+    case "protection":
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
-          <circle cx="10.8" cy="10.8" r="6.3" />
-          <path d="m15.5 15.5 4.2 4.2M8.5 9.5h4.6M8.5 12.2h3" />
+          <path d="M12 3 19 6v5.2c0 4.4-2.8 7.4-7 9.8-4.2-2.4-7-5.4-7-9.8V6l7-3Z" />
+          <path d="M8.5 12.2a3.5 3.5 0 0 1 6.4-1.9M15.5 8.8v2.5H13M15.5 12a3.5 3.5 0 0 1-6.4 1.9M8.5 15.4v-2.5H11" />
         </svg>
       );
   }
@@ -124,6 +131,7 @@ export default function FeatureSection() {
 
   useEffect(() => {
     const section = sectionRef.current;
+
     if (!section) return;
 
     const cards = section.querySelectorAll<HTMLElement>(".feature-card");
@@ -184,24 +192,71 @@ export default function FeatureSection() {
   return (
     <section
       ref={sectionRef}
-      id="features"
-      className="feature-section relative bg-white px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28"
+      id="platform"
+      aria-labelledby="platform-heading"
+      className="feature-section relative overflow-hidden bg-white px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28"
     >
       <div className="mx-auto w-full max-w-[1280px]">
-        <div className="feature-heading mx-auto mb-12 max-w-2xl text-center sm:mb-16">
-          <h2 className="text-balance text-3xl font-bold leading-[1.1] tracking-[-0.055em] text-[#07152f] sm:text-4xl lg:text-5xl">
-            Everything you need.
+        {/* Section heading */}
+        <div className="feature-heading mx-auto mb-12 max-w-3xl text-center sm:mb-16">
+          <h2
+            id="platform-heading"
+            className="text-balance text-3xl font-bold leading-[1.1] tracking-[-0.055em] text-[#07152f] sm:text-4xl lg:text-5xl"
+          >
+            The infrastructure
             <span className="mt-1 block text-[#64748b]">
-              Nothing you don’t.
+              behind your workloads.
             </span>
           </h2>
 
-          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#64748b] sm:text-base">
-            Practical cloud infrastructure and expert support to help your
-            business operate, grow, and move forward with confidence.
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#64748b] sm:text-base">
+            Enterprise cloud infrastructure with virtual networking, compute,
+            storage and operational visibility, backed by practical guidance
+            from OPEX Consulting.
           </p>
         </div>
 
+        {/* Current offering */}
+        <div className="mb-8 flex flex-col gap-4 rounded-[22px] border border-[#e3eaf4] bg-[#f7f9fc] p-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e5edff] text-[#315caa]">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+                className="h-5 w-5"
+              >
+                <path
+                  d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8m0-12.8L5.6 18.4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+
+            <div>
+              <h3 className="text-base font-semibold tracking-[-0.025em] text-[#07152f] sm:text-lg">
+                Start with the essentials.
+              </h3>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-[#64748b]">
+                Virtual Private Cloud and pay-as-you-go infrastructure designed
+                to give your team a practical starting point.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+            <span className="rounded-full border border-[#dce6f6] bg-white px-3.5 py-2 text-xs font-semibold text-[#315caa]">
+              Virtual Private Cloud
+            </span>
+            <span className="rounded-full border border-[#dce6f6] bg-white px-3.5 py-2 text-xs font-semibold text-[#315caa]">
+              Pay-as-you-go
+            </span>
+          </div>
+        </div>
+
+        {/* Platform capability cards */}
         <div className="feature-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <article
@@ -217,46 +272,93 @@ export default function FeatureSection() {
                 } as CSSProperties
               }
             >
-              <div className="mb-8 flex items-start justify-between">
+              <div className="mb-8 flex items-start justify-between gap-3">
                 <div className="feature-icon flex h-12 w-12 items-center justify-center rounded-[16px]">
                   <span className="h-6 w-6">
                     <ServiceIcon name={feature.icon} />
                   </span>
                 </div>
 
-                <span className="feature-number text-xs font-semibold tracking-[0.12em]">
+                <span className="feature-number pt-1 text-xs font-semibold tracking-[0.12em]">
                   {feature.number}
                 </span>
               </div>
 
-              <h3 className="max-w-[280px] text-xl font-semibold leading-snug tracking-[-0.035em] sm:text-2xl">
+              <h3 className="max-w-[290px] text-xl font-semibold leading-snug tracking-[-0.035em] sm:text-2xl">
                 {feature.title}
               </h3>
 
               <p className="mt-3 max-w-[340px] text-sm leading-6">
                 {feature.description}
               </p>
+
+              <div className="mt-auto pt-7">
+                <div className="feature-card-divider mb-4" />
+                <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide">
+                  <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                  {feature.label}
+                </span>
+              </div>
             </article>
           ))}
         </div>
 
-        <div className="mt-8 rounded-[22px] border border-[#e0e6ee] bg-white px-6 py-7 sm:px-8 sm:py-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold tracking-[-0.03em] text-[#07152f]">
-                Not sure what your business needs?
+        {/* Data residency statement */}
+        <div className="mt-8 flex flex-col gap-4 rounded-[22px] border border-[#e1e8f1] bg-white p-6 sm:flex-row sm:items-center sm:gap-5 sm:p-8">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eaf1ff] text-[#315caa]">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              className="h-6 w-6"
+            >
+              <path
+                d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path
+                d="m4.5 7.8 7.5 4.4 7.5-4.4M12 12.2V21"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-semibold tracking-[-0.025em] text-[#07152f] sm:text-lg">
+              Cloud infrastructure with local context.
+            </h3>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-[#64748b]">
+              Designed for organisations operating in Nigeria, with
+              consideration for local data residency, governance and
+              infrastructure requirements. Specific requirements should be
+              assessed for each workload.
+            </p>
+          </div>
+        </div>
+
+        {/* Closing CTA */}
+        <div className="mt-8 overflow-hidden rounded-[26px] bg-[#07152f] px-6 py-8 sm:px-9 sm:py-9 lg:px-10">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-2xl">
+              <h3 className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-3xl">
+                The right cloud setup starts with the right conversation.
               </h3>
 
-              <p className="mt-1 text-sm leading-6 text-[#64748b]">
-                Let’s work together to find the right cloud solution.
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[#c4d1e3]">
+                Discuss your workloads, infrastructure needs and next steps with
+                the OPEX Cloud team.
               </p>
             </div>
 
             <a
               href="#contact"
-              className="inline-flex min-h-11 items-center justify-center self-start rounded-full bg-[#07152f] px-5 py-3 text-sm font-semibold !text-white transition-colors duration-200 hover:bg-[#19345a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] focus-visible:ring-offset-2 sm:self-auto"
+              className="inline-flex min-h-[50px] shrink-0 items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#07152f] transition duration-200 hover:-translate-y-0.5 hover:bg-[#eaf1f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9bc0ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#07152f]"
             >
-              Talk to our team
+              Talk to a Cloud Expert
             </a>
           </div>
         </div>
@@ -264,7 +366,6 @@ export default function FeatureSection() {
 
       <style jsx>{`
         .feature-section {
-          position: relative;
           isolation: isolate;
         }
 
@@ -276,7 +377,7 @@ export default function FeatureSection() {
           position: relative;
           isolation: auto;
           overflow: visible;
-          padding: 16px 8px 28px;
+          padding: 8px 4px 24px;
         }
 
         .feature-card {
@@ -285,9 +386,9 @@ export default function FeatureSection() {
 
           position: relative;
           z-index: 0;
-          min-width: 0;
-          min-height: 290px;
           display: flex;
+          min-width: 0;
+          min-height: 310px;
           flex-direction: column;
           overflow: hidden;
           padding: 26px;
@@ -296,7 +397,7 @@ export default function FeatureSection() {
           border-radius: 24px;
 
           opacity: 0;
-          transform: translateY(16px) scale(0.985);
+          transform: translateY(16px) scale(0.99);
           transform-origin: center center;
 
           box-shadow: 0 5px 18px rgba(7, 21, 47, 0.035);
@@ -321,7 +422,7 @@ export default function FeatureSection() {
 
         .feature-card-blue {
           border-color: #dce7ff;
-          background: #eaf1ff;
+          background: #f0f5ff;
           color: #07152f;
         }
 
@@ -331,30 +432,9 @@ export default function FeatureSection() {
           color: #ffffff;
         }
 
-        @media (hover: hover) and (pointer: fine) {
-          .feature-card:hover {
-            z-index: 10;
-            opacity: 1;
-            transform: translateY(-10px) scale(1.035) perspective(1000px)
-              rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
-            box-shadow: 0 24px 48px rgba(7, 21, 47, 0.16),
-              0 8px 18px rgba(7, 21, 47, 0.07);
-            transition-delay: 0ms;
-          }
-
-          .feature-card-light:hover,
-          .feature-card-blue:hover {
-            border-color: #b9cdf3;
-          }
-
-          .feature-card-dark:hover {
-            border-color: #4775b9;
-          }
-        }
-
         .feature-icon {
           background: #eaf1ff;
-          color: #3977e8;
+          color: #315caa;
           transition: transform 300ms ease;
         }
 
@@ -364,7 +444,7 @@ export default function FeatureSection() {
         }
 
         .feature-card-blue .feature-icon {
-          background: #d7e5ff;
+          background: #dce8ff;
           color: #2862cb;
         }
 
@@ -373,16 +453,12 @@ export default function FeatureSection() {
           color: #b9d4ff;
         }
 
-        .feature-card:hover .feature-icon {
-          transform: scale(1.08);
-        }
-
         .feature-number {
           color: #94a3b8;
         }
 
         .feature-card-blue .feature-number {
-          color: #6b83ad;
+          color: #7186ad;
         }
 
         .feature-card-dark .feature-number {
@@ -396,6 +472,44 @@ export default function FeatureSection() {
 
         .feature-card-dark p {
           color: #c4d1e3;
+        }
+
+        .feature-card-divider {
+          height: 1px;
+          background: #e8edf4;
+        }
+
+        .feature-card-blue .feature-card-divider {
+          background: #dce5f5;
+        }
+
+        .feature-card-dark .feature-card-divider {
+          background: rgba(255, 255, 255, 0.14);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+          .feature-card:hover {
+            z-index: 2;
+            opacity: 1;
+            transform: translateY(-6px) scale(1.015) perspective(1000px)
+              rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
+            box-shadow: 0 22px 44px rgba(7, 21, 47, 0.12),
+              0 6px 16px rgba(7, 21, 47, 0.045);
+            transition-delay: 0ms;
+          }
+
+          .feature-card-light:hover,
+          .feature-card-blue:hover {
+            border-color: #b9cdf3;
+          }
+
+          .feature-card-dark:hover {
+            border-color: #4775b9;
+          }
+
+          .feature-card:hover .feature-icon {
+            transform: scale(1.06);
+          }
         }
 
         @keyframes headingReveal {

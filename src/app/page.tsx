@@ -11,36 +11,24 @@ import FaqSection from "./components/FaqSection";
 import Contact from "./components/ContactSection";
 import WhoIsItForSection from "./components/WhoIsItForSection";
 import CtaSection from "./components/CtaSection";
-import WaitlistModal from "./components/WaitlistModal";
 import Partnership from "./components/Partnership";
+import Service from "./components/ServiceSection";
+import Solution from "./components/SolutionSection";
+import Trust from "./components/TrustSection";
 
 export default function Home() {
-  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-
-  const openWaitlist = () => setIsWaitlistOpen(true);
-  const closeWaitlist = () => setIsWaitlistOpen(false);
-
   return (
     <>
-      <Herosection onJoinWaitlist={openWaitlist} />
-
+      <Herosection />
       <MarqueeSection />
       <Partnership />
-      <AboutSection onJoinWaitlist={openWaitlist} />
-
-      <FeaturesSection />
-
+      <Service />
+      <Solution />
+      <Trust />
       <WhoIsItForSection />
-
-      <CtaSection onJoinWaitlist={openWaitlist} />
-
+      <CtaSection />
       <FaqSection />
-
-      <Contact />
-
-      <FooterSection onJoinWaitlist={openWaitlist} />
-
-      <WaitlistModal isOpen={isWaitlistOpen} onClose={closeWaitlist} />
+      <FooterSection />
     </>
   );
 }
