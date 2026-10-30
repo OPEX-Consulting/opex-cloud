@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 
@@ -9,14 +10,16 @@ const SERVICES = [
     category: "Infrastructure",
     title: "Cloud compute",
     shortDescription:
-      "Run business applications and workloads on virtual machines built around your requirements.",
+      "Run business applications on virtual machines with resources suited to your workloads.",
     description:
-      "Build and run your applications in a cloud environment with compute resources that can be considered around your workload, performance needs and operating requirements.",
+      "Deploy the workloads your organisation depends on, from business applications and internal systems to development environments. Plan your compute resources around your application's requirements and operational needs.",
     capabilities: [
       "Virtual machine infrastructure",
-      "Workload-specific resource planning",
-      "Support with deployment requirements",
+      "Snapshots and recovery points",
+      "Key-pair access management",
+      "Workload scaling options",
     ],
+    useCases: ["ERP and business applications", "Development and testing"],
     icon: "compute",
   },
   {
@@ -25,14 +28,16 @@ const SERVICES = [
     category: "Connectivity",
     title: "Private networking",
     shortDescription:
-      "Keep your cloud workloads organised within a private virtual network.",
+      "Connect and organise cloud workloads within a virtual private network.",
     description:
-      "Plan how your workloads connect using virtual private cloud networking. Establish a considered network structure for your applications, systems and infrastructure.",
+      "Structure how your cloud resources communicate. Virtual private cloud networking gives you a foundation for organising workloads, separating network environments and configuring access between resources.",
     capabilities: [
-      "Virtual private cloud networking",
-      "Network segmentation considerations",
+      "Virtual private clouds and subnets",
+      "Route tables and network interfaces",
       "Security group configuration",
+      "Network segmentation",
     ],
+    useCases: ["Multi-tier applications", "Private business systems"],
     icon: "network",
   },
   {
@@ -41,30 +46,34 @@ const SERVICES = [
     category: "Data",
     title: "Storage & protection",
     shortDescription:
-      "Plan how your workload data is stored, protected and recovered.",
+      "Choose storage options and plan how important workload data is protected.",
     description:
-      "Storage is more than capacity. Consider how your data is organised, what needs protection and how snapshots and recovery requirements fit into your infrastructure design.",
+      "Different workloads have different storage requirements. Consider how application data is stored, how snapshots fit into your recovery strategy and what protection your organisation needs.",
     capabilities: [
       "Block storage",
-      "Snapshot capabilities",
-      "Backup and recovery planning",
+      "File and object storage options",
+      "Snapshots and recovery planning",
+      "Backup and data protection options",
     ],
+    useCases: ["Business data and documents", "Disaster recovery planning"],
     icon: "storage",
   },
   {
     id: "monitoring",
     number: "04",
     category: "Operations",
-    title: "Monitoring & visibility",
+    title: "Monitoring & availability",
     shortDescription:
-      "Understand infrastructure performance and identify issues more clearly.",
+      "Improve visibility into infrastructure performance and operational issues.",
     description:
-      "Build operational visibility into your cloud environment with infrastructure metrics, monitoring and alerts. Make it easier for your team to understand workload behaviour and investigate issues.",
+      "Understand how your infrastructure behaves over time. Monitoring, alerting and load-balancing capabilities can help your team observe workloads, investigate issues and plan for operational continuity.",
     capabilities: [
       "Infrastructure metrics",
-      "Monitoring and alerts",
+      "Monitoring and alerting",
+      "Load-balancing capabilities",
       "Operational visibility",
     ],
+    useCases: ["Customer-facing applications", "Business-critical workloads"],
     icon: "monitoring",
   },
   {
@@ -73,14 +82,16 @@ const SERVICES = [
     category: "Expertise",
     title: "Cloud guidance & migration",
     shortDescription:
-      "Get practical guidance when planning, moving or improving workloads.",
+      "Get practical guidance on architecture, workload migration and deployment.",
     description:
-      "Work through your infrastructure requirements with a team that can help you evaluate your options, plan your cloud journey and identify the right next steps for your organisation.",
+      "Moving to cloud starts with understanding what you already run and what your organisation needs next. Discuss your current infrastructure, migration requirements and deployment approach with the Opex Cloud team.",
     capabilities: [
       "Cloud architecture discussions",
-      "Migration planning",
       "Workload and infrastructure assessment",
+      "Migration planning",
+      "Deployment guidance",
     ],
+    useCases: ["Moving existing applications", "Planning a cloud adoption"],
     icon: "managed",
   },
 ] as const;
@@ -144,20 +155,67 @@ function ServiceIcon({ name }: { name: ServiceIconName }) {
   }
 }
 
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+      className="mt-0.5 h-4 w-4 shrink-0"
+    >
+      <path
+        d="m4.5 10 3.2 3.2L15.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function Service() {
   const [activeService, setActiveService] = useState(0);
   const selectedService = SERVICES[activeService];
 
+  function handleTabKeyDown(
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) {
+    let nextIndex = index;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      nextIndex = (index + 1) % SERVICES.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      nextIndex = (index - 1 + SERVICES.length) % SERVICES.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = SERVICES.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    setActiveService(nextIndex);
+
+    document.getElementById(`service-tab-${SERVICES[nextIndex].id}`)?.focus();
+  }
+
   return (
     <section
       id="services"
+      aria-labelledby="services-heading"
       className="service-section relative overflow-hidden bg-white py-24 text-[#07152f] sm:py-28 lg:py-32"
     >
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         {/* Section introduction */}
         <div className="service-intro grid gap-8 lg:grid-cols-[1.1fr_0.7fr] lg:items-end">
           <div>
-            <h2 className="max-w-3xl text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-5xl lg:text-6xl">
+            <h2
+              id="services-heading"
+              className="max-w-3xl text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.055em] sm:text-5xl lg:text-6xl"
+            >
               The infrastructure
               <span className="block text-[#3977e8]">
                 behind your next move.
@@ -167,15 +225,22 @@ export default function Service() {
 
           <div className="lg:pb-2">
             <p className="max-w-xl text-base leading-7 text-[#52647e] sm:text-lg sm:leading-8">
-              From compute and private networking to storage and monitoring,
-              Opex Cloud helps you approach infrastructure with greater clarity
-              and practical support.
+              From virtual machines and private networking to storage,
+              monitoring and migration guidance, explore the cloud capabilities
+              available to support your workloads.
             </p>
 
-            <p className="mt-4 text-sm leading-6 text-[#718097]">
-              Current offering: virtual private cloud infrastructure with
-              pay-as-you-go pricing.
-            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full border border-[#dce6f6] bg-[#f7f9fd] px-3.5 py-2 text-xs font-semibold text-[#344966]">
+                Virtual Private Cloud
+              </span>
+              <span className="rounded-full border border-[#dce6f6] bg-[#f7f9fd] px-3.5 py-2 text-xs font-semibold text-[#344966]">
+                Pay-as-you-go
+              </span>
+              <span className="rounded-full border border-[#dce6f6] bg-[#f7f9fd] px-3.5 py-2 text-xs font-semibold text-[#344966]">
+                Naira billing
+              </span>
+            </div>
           </div>
         </div>
 
@@ -186,7 +251,7 @@ export default function Service() {
             className="service-list grid content-start gap-3 sm:grid-cols-2 lg:grid-cols-1"
             role="tablist"
             aria-label="Cloud services"
-            aria-orientation="horizontal"
+            aria-orientation="vertical"
           >
             {SERVICES.map((service, index) => {
               const isActive = activeService === index;
@@ -199,35 +264,9 @@ export default function Service() {
                   role="tab"
                   aria-selected={isActive}
                   aria-controls={`service-panel-${service.id}`}
+                  tabIndex={isActive ? 0 : -1}
                   onClick={() => setActiveService(index)}
-                  onKeyDown={(event) => {
-                    let nextIndex = activeService;
-
-                    if (
-                      event.key === "ArrowRight" ||
-                      event.key === "ArrowDown"
-                    ) {
-                      nextIndex = (activeService + 1) % SERVICES.length;
-                    } else if (
-                      event.key === "ArrowLeft" ||
-                      event.key === "ArrowUp"
-                    ) {
-                      nextIndex =
-                        (activeService - 1 + SERVICES.length) % SERVICES.length;
-                    } else if (event.key === "Home") {
-                      nextIndex = 0;
-                    } else if (event.key === "End") {
-                      nextIndex = SERVICES.length - 1;
-                    } else {
-                      return;
-                    }
-
-                    event.preventDefault();
-                    setActiveService(nextIndex);
-                    document
-                      .getElementById(`service-tab-${SERVICES[nextIndex].id}`)
-                      ?.focus();
-                  }}
+                  onKeyDown={(event) => handleTabKeyDown(event, index)}
                   className={`service-tab group flex w-full items-start gap-4 rounded-2xl border p-5 text-left transition duration-300 sm:p-5 ${
                     isActive
                       ? "border-[#cbd9f1] bg-white shadow-[0_12px_35px_rgba(7,21,47,0.07)]"
@@ -259,20 +298,28 @@ export default function Service() {
                       {service.shortDescription}
                     </span>
                   </span>
+
+                  <span
+                    aria-hidden="true"
+                    className={`mt-1 hidden h-2 w-2 shrink-0 rounded-full lg:block ${
+                      isActive ? "bg-[#3977e8]" : "bg-transparent"
+                    }`}
+                  />
                 </button>
               );
             })}
           </div>
 
-          {/* Selected service detail */}
+          {/* Selected service details */}
           <div
             key={selectedService.id}
             id={`service-panel-${selectedService.id}`}
             role="tabpanel"
             aria-labelledby={`service-tab-${selectedService.id}`}
             tabIndex={0}
-            className="service-detail relative flex min-h-[470px] flex-col overflow-hidden rounded-[28px] border border-[#e0e7f1] bg-white p-7 shadow-[0_20px_70px_rgba(7,21,47,0.05)] sm:p-10 lg:p-12"
+            className="service-detail relative flex min-h-[560px] flex-col overflow-hidden rounded-[28px] border border-[#e0e7f1] bg-white p-7 shadow-[0_20px_70px_rgba(7,21,47,0.05)] sm:p-10 lg:p-12"
           >
+            {/* Decorative rings */}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full border border-[#e5edfa]"
@@ -290,11 +337,11 @@ export default function Service() {
               </span>
 
               <span className="text-sm font-semibold tabular-nums text-[#a0acbd]">
-                {selectedService.number}
+                {selectedService.number} / 05
               </span>
             </div>
 
-            <div className="relative z-10 mt-10 max-w-2xl">
+            <div className="relative z-10 mt-9 max-w-2xl">
               <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#07152f] text-[#a9c8ff] shadow-[0_8px_24px_rgba(7,21,47,0.16)]">
                 <span className="h-7 w-7">
                   <ServiceIcon name={selectedService.icon} />
@@ -310,9 +357,10 @@ export default function Service() {
               </p>
             </div>
 
-            <div className="relative z-10 mt-9 border-t border-[#e9eef5] pt-7">
+            {/* Capabilities */}
+            <div className="relative z-10 mt-8 border-t border-[#e9eef5] pt-7">
               <p className="mb-5 text-xs font-bold uppercase tracking-[0.16em] text-[#8b98aa]">
-                Areas to explore
+                Service capabilities
               </p>
 
               <ul className="grid gap-3 sm:grid-cols-2">
@@ -321,26 +369,31 @@ export default function Service() {
                     key={capability}
                     className="flex items-start gap-3 text-sm leading-6 text-[#344761]"
                   >
-                    <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eaf1ff] text-[#2862cb]">
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        aria-hidden="true"
-                        className="h-3 w-3"
-                      >
-                        <path
-                          d="m4.5 10 3.2 3.2L15.5 5.5"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eaf1ff] text-[#2862cb]">
+                      <CheckIcon />
                     </span>
                     {capability}
                   </li>
                 ))}
               </ul>
+            </div>
+
+            {/* Relevant use cases */}
+            <div className="relative z-10 mt-7">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[#8b98aa]">
+                Example workloads
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {selectedService.useCases.map((useCase) => (
+                  <span
+                    key={useCase}
+                    className="rounded-lg border border-[#e4eaf3] bg-[#fbfcff] px-3 py-2 text-xs font-medium text-[#536783]"
+                  >
+                    {useCase}
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="relative z-10 mt-auto pt-9">
@@ -354,10 +407,70 @@ export default function Service() {
           </div>
         </div>
 
-        {/* Bottom callout */}
-        <div className="service-bottom mt-8 flex flex-col gap-6 rounded-2xl border border-[#e0e7f1] bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        {/* Use-case strip */}
+        <div className="mt-14">
+          <div className="mb-6 max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#3977e8]">
+              Built around real workloads
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
+              Cloud for the work your organisation does.
+            </h3>
+            <p className="mt-3 text-sm leading-7 text-[#68778d] sm:text-base">
+              Explore infrastructure options for business systems, digital
+              services and workloads that need a considered deployment plan.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Business applications",
+                description:
+                  "Run ERP platforms, internal tools and operational systems.",
+                icon: "01",
+              },
+              {
+                title: "Education platforms",
+                description:
+                  "Support student portals and digital learning services.",
+                icon: "02",
+              },
+              {
+                title: "Financial workloads",
+                description:
+                  "Discuss infrastructure requirements for financial systems.",
+                icon: "03",
+              },
+              {
+                title: "Backup and recovery",
+                description:
+                  "Plan for data protection and recovery requirements.",
+                icon: "04",
+              },
+            ].map((item) => (
+              <article
+                key={item.title}
+                className="rounded-2xl border border-[#e3e9f2] bg-[#fbfcff] p-5 transition duration-300 hover:border-[#cbd9f1] hover:bg-white"
+              >
+                <span className="text-xs font-bold tracking-[0.14em] text-[#3977e8]">
+                  {item.icon}
+                </span>
+                <h4 className="mt-5 text-base font-semibold tracking-[-0.02em]">
+                  {item.title}
+                </h4>
+                <p className="mt-2 text-sm leading-6 text-[#68778d]">
+                  {item.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="service-bottom mt-10 flex flex-col gap-6 rounded-2xl border border-[#dce5f1] bg-[#f7f9fd] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8efff] text-[#2862cb]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e8efff] text-[#2862cb]">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -379,16 +492,16 @@ export default function Service() {
               </h3>
 
               <p className="mt-1 max-w-2xl text-sm leading-6 text-[#697990]">
-                Start with your goals, current infrastructure and operational
-                requirements. We can discuss the options relevant to your
-                organisation.
+                Tell us what you're building, what you're running today and what
+                you need from your infrastructure. We can discuss the options
+                that fit your requirements.
               </p>
             </div>
           </div>
 
           <Link
             href="/onboarding"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#d8e1ee] bg-white px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:border-[#aebfda] hover:bg-[#f7f9fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] focus-visible:ring-offset-2"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-[#07152f] px-5 py-3 text-sm font-semibold !text-white transition duration-300 hover:-translate-y-0.5 hover:bg-[#10264b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] focus-visible:ring-offset-2"
           >
             Talk to a cloud expert
           </Link>

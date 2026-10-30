@@ -15,16 +15,17 @@ import Partnership from "./components/Partnership";
 import Service from "./components/ServiceSection";
 import Solution from "./components/SolutionSection";
 import Trust from "./components/TrustSection";
+import CertificationSection from "./components/CertificationSection";
 
 export default function Home() {
   return (
     <>
       <Herosection />
-      <MarqueeSection />
       <Partnership />
       <Service />
       <Solution />
       <Trust />
+      <CertificationSection />
       <WhoIsItForSection />
       <CtaSection />
       <FaqSection />
