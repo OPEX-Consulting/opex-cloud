@@ -86,15 +86,90 @@ export default function FooterSection() {
               requirements or cloud assessment with our team.
             </p>
 
+            <div className="mt-6 space-y-4">
+              {/* Email */}
+              <a
+                href="mailto:info@opexconsult.co.uk"
+                className="group flex w-fit max-w-full items-start gap-3 rounded-lg text-sm text-slate-300 transition-colors duration-200 hover:text-[#8bb8ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] focus-visible:ring-offset-4 focus-visible:ring-offset-[#07152f]"
+              >
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-[#8bb8ff] transition-colors group-hover:border-[#8bb8ff]/30 group-hover:bg-[#8bb8ff]/10">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  >
+                    <rect
+                      x="3"
+                      y="5"
+                      width="18"
+                      height="14"
+                      rx="2.5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                    />
+                    <path
+                      d="m4 7 8 6 8-6"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+
+                <span className="min-w-0 pt-2">
+                  <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                    Email us
+                  </span>
+                  <span className="mt-1 block break-all font-medium">
+                    info@opexconsult.co.uk
+                  </span>
+                </span>
+              </a>
+
+              {/* Phone */}
+              <a
+                href="tel:+2348024611363"
+                className="group flex w-fit max-w-full items-start gap-3 rounded-lg text-sm text-slate-300 transition-colors duration-200 hover:text-[#8bb8ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8] focus-visible:ring-offset-4 focus-visible:ring-offset-[#07152f]"
+              >
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-[#8bb8ff] transition-colors group-hover:border-[#8bb8ff]/30 group-hover:bg-[#8bb8ff]/10">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                  >
+                    <path
+                      d="M7 3.5h3l1.5 4-2 1.6a13 13 0 0 0 5.4 5.4l1.6-2 4 1.5v3a2 2 0 0 1-2.1 2A15.5 15.5 0 0 1 5 5.6 2 2 0 0 1 7 3.5Z"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+
+                <span className="pt-2">
+                  <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                    Call us
+                  </span>
+                  <span className="mt-1 block font-medium">
+                    +234(0)8024611363
+                  </span>
+                </span>
+              </a>
+            </div>
+
             <button
               type="button"
               onClick={() => routerInterface.push("/support")}
-              className="mt-5 inline-flex min-h-10 items-center rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-blue-300 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8]"
+              className="mt-6 inline-flex min-h-10 items-center justify-center rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-blue-300 transition-all duration-300 hover:border-[#8bb8ff]/50 hover:bg-white/[0.04] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3977e8]"
             >
               Contact OPEX Cloud
             </button>
 
-            <p className="mt-5 text-xs leading-5 text-slate-400">
+            <p className="mt-6 text-xs leading-5 text-slate-400">
               A cloud services business of OPEX Consulting Limited.
             </p>
           </div>

@@ -317,14 +317,6 @@ export default function CertificationSection() {
             </div>
           </article>
         </div>
-
-        {/* Certification clarification */}
-        <p className="mx-auto mt-8 max-w-4xl text-center text-xs leading-6 text-[#8490a0]">
-          ISO/IEC 27001 certification and Data Centre Tier III certification are
-          distinct credentials. Certification descriptions should identify the
-          relevant organisation, facility and scope. NDPC registration is a
-          separate regulatory status and should only be claimed when verified.
-        </p>
       </div>
     </section>
   );
