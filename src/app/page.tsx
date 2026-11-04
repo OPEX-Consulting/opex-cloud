@@ -11,7 +11,6 @@ import FaqSection from "./components/FaqSection";
 import Contact from "./components/ContactSection";
 import WhoIsItForSection from "./components/WhoIsItForSection";
 import CtaSection from "./components/CtaSection";
-import Partnership from "./components/Partnership";
 import Service from "./components/ServiceSection";
 import Solution from "./components/SolutionSection";
 import Trust from "./components/TrustSection";
@@ -21,7 +20,6 @@ export default function Home() {
   return (
     <>
       <Herosection />
-      <Partnership />
       <Service />
       <Solution />
       <Trust />
