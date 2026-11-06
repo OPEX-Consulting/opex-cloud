@@ -341,6 +341,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
   }, []);
 
   const step = draft.currentStep;
+  const headerProject = { ...project, customerName: draft.answers.contact.customerName?.trim() || project.customerName };
   const missing = useMemo(() => findMissing(draft.answers, draft.servers), [draft.answers, draft.servers]);
   const errorsFor = (s: number) =>
     visited.has(s) ? Object.fromEntries(missing.filter((m) => m.step === s).map((m) => [m.field, m.label])) : {};
@@ -432,7 +433,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
 
   if (screen === "expired") {
     return (
-      <Shell project={project} mode={mode}>
+      <Shell project={headerProject} mode={mode}>
         <div className="mx-auto max-w-xl px-4 py-16 text-center sm:py-24">
           <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-blue text-opex-blue">
             <FiClock aria-hidden className="h-6 w-6" />
@@ -453,7 +454,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
   if (screen === "submitted" || screen === "done") {
     const justDone = screen === "done";
     return (
-      <Shell project={project} mode={mode}>
+      <Shell project={headerProject} mode={mode}>
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="print:hidden">
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e8f5ec] text-[#15803d]">
@@ -523,7 +524,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
       "Any recovery targets you work to (how much data you could lose, how fast you need to be back)",
     ];
     return (
-      <Shell project={project} mode={mode}>
+      <Shell project={headerProject} mode={mode}>
         <div className="opex-hero">
           <div aria-hidden className="opex-hero-glow" />
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.25fr_1fr] lg:py-20">
@@ -598,7 +599,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
   const wide = step === 4;
 
   return (
-    <Shell project={project} mode={mode} right={<SaveIndicator state={saveState} last={lastSaved} now={now} />}>
+    <Shell project={headerProject} mode={mode} right={<SaveIndicator state={saveState} last={lastSaved} now={now} />}>
       {/* Mobile progress */}
       <div className="sticky top-16 z-30 border-b border-border bg-white/90 px-4 py-2.5 backdrop-blur lg:hidden print:hidden">
         <div className="flex items-center justify-between text-xs">

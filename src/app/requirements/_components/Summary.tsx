@@ -97,8 +97,7 @@ function ServerTable({ kind, rows }: { kind: ServerKind; rows: ServerRow[] }) {
   return (
     <div className="mt-3 break-inside-avoid">
       <p className="text-xs font-semibold text-opex-navy">
-        {KIND_LABELS[kind]} · {rows.length} · {fmt(t.cpu)} {kind === "physical" ? "cores" : "vCPU"} · {fmt(t.ram)} GiB RAM · {fmt(t.storage)} GiB storage ·{" "}
-        {fmt(t.publicIps)} public IPs
+        {KIND_LABELS[kind]} · {rows.length} · {fmt(t.cpu)} {kind === "physical" ? "cores" : "vCPU"} · {fmt(t.ram)} GiB RAM · {fmt(t.storage)} GiB storage · {fmt(t.publicIps)} public {t.publicIps === 1 ? "IP" : "IPs"}
       </p>
       <div className="mt-2 overflow-x-auto rounded-xl border border-border print:overflow-visible">
         <table className="w-full text-left text-xs">
@@ -220,7 +219,7 @@ export function Summary({
       <Group step={4} onEdit={onEdit} missingCount={count(4)}>
         <Row label="Totals (all servers)" missing={miss("servers")}>
           {all.count
-            ? `${all.count} servers (${servers.linux.length} Linux VMs, ${servers.windows.length} Windows VMs, ${servers.physical.length} physical) · ${fmt(all.cpu)} vCPU/cores · ${fmt(all.ram)} GiB RAM · ${fmt(all.storage)} GiB storage · ${fmt(all.publicIps)} public IPs`
+            ? `${all.count} ${all.count === 1 ? "server" : "servers"} (${servers.linux.length} Linux ${servers.linux.length === 1 ? "VM" : "VMs"}, ${servers.windows.length} Windows ${servers.windows.length === 1 ? "VM" : "VMs"}, ${servers.physical.length} physical) · ${fmt(all.cpu)} vCPU/cores · ${fmt(all.ram)} GiB RAM · ${fmt(all.storage)} GiB storage · ${fmt(all.publicIps)} public IPs`
             : a.inventory.sendSeparately
               ? "Inventory to be sent separately"
               : ""}
