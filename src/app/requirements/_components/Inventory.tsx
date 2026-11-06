@@ -12,6 +12,8 @@ import {
 } from "react-icons/fi";
 import {
   DR_PROTECT,
+  BACKUP_OPTIONS,
+  REPLICATION_OPTIONS,
   HYPERVISORS,
   LINUX_OS,
   OS_TYPES,
@@ -34,6 +36,7 @@ import { KIND_LABELS, fmt, overallTotals, totalsFor, type Totals } from "@/lib/r
 import { csvTemplate, csvToRows, columnsFor, type CsvImport } from "@/lib/requirements/csv";
 import { NotSureCheck, NumberInput, SelectInput, StepHeader, Tooltip, inputCls } from "./ui";
 import type { Patch } from "./Steps";
+import { isDrUseCase } from "@/lib/pricing/fromRequirements";
 
 const KINDS: ServerKind[] = ["linux", "windows", "physical"];
 
@@ -99,10 +102,20 @@ function CellSelect({
   onChange: (v: string) => void;
   label: string;
   kind: ServerKind;
-  field: "os" | "role" | "hypervisor" | "drProtect";
+  field: "os" | "role" | "hypervisor" | "drProtect" | "backup" | "replication";
 }) {
   const opts =
-    field === "os" ? osOptions(kind) : field === "role" ? SERVER_ROLES : field === "hypervisor" ? HYPERVISORS : DR_PROTECT;
+    field === "os"
+      ? osOptions(kind)
+      : field === "role"
+        ? SERVER_ROLES
+        : field === "hypervisor"
+          ? HYPERVISORS
+          : field === "backup"
+            ? BACKUP_OPTIONS
+            : field === "replication"
+              ? REPLICATION_OPTIONS
+              : DR_PROTECT;
   return (
     <select
       aria-label={label}
@@ -327,7 +340,8 @@ const TableRow = memo(function TableRow({ kind, row, index, update, remove, dupl
   const u = (p: Partial<ServerRow>) => update(row.id, p);
   const name = row.hostname || `server ${index + 1}`;
   const incomplete = row.vcpu == null || row.ramGib == null || row.bootGib == null || !row.os;
-  const colCount = kind === "linux" ? 13 : kind === "windows" ? 12 : 11;
+  const colCount = kind === "linux" ? 15 : kind === "windows" ? 14 : 13;
+  const noProtection = !row.backup || !row.replication;
   const detailCount = row.disks.length;
   return (
     <>
@@ -371,6 +385,12 @@ const TableRow = memo(function TableRow({ kind, row, index, update, remove, dupl
         )}
         <td className="min-w-[110px] px-1 py-1">
           <CellSelect kind={kind} field="drProtect" label={`DR protect for ${name}`} value={row.drProtect} onChange={(v) => u({ drProtect: v })} />
+        </td>
+        <td className={`min-w-[78px] px-1 py-1 ${noProtection && !row.backup ? "bg-[#fdf6f2]" : ""}`}>
+          <CellSelect kind={kind} field="backup" label={`Managed backup for ${name}`} value={row.backup} onChange={(v) => u({ backup: v })} />
+        </td>
+        <td className={`min-w-[128px] px-1 py-1 ${noProtection && !row.replication ? "bg-[#fdf6f2]" : ""}`}>
+          <CellSelect kind={kind} field="replication" label={`Replication for ${name}`} value={row.replication} onChange={(v) => u({ replication: v })} />
         </td>
         <td className="px-1 py-1">
           <button
@@ -490,6 +510,14 @@ const RowCard = memo(function RowCard({ kind, row, index, update, remove, duplic
         <label className={kind === "physical" ? "col-span-2" : ""}>
           <span className={lbl}>DR protect</span>
           <SelectInput value={row.drProtect} onChange={(v) => u({ drProtect: v })} options={DR_PROTECT} />
+        </label>
+        <label>
+          <span className={lbl}>Managed backup</span>
+          <SelectInput value={row.backup} onChange={(v) => u({ backup: v })} options={BACKUP_OPTIONS} invalid={!row.backup} />
+        </label>
+        <label>
+          <span className={lbl}>Replication</span>
+          <SelectInput value={row.replication} onChange={(v) => u({ replication: v })} options={REPLICATION_OPTIONS} invalid={!row.replication} />
         </label>
       </div>
       <button
@@ -705,10 +733,22 @@ export function Inventory({
     [kind, setServers],
   );
 
+  const dr = isDrUseCase(a);
   const add = () => {
     const n = cap(addQty);
-    setServers((s) => ({ ...s, [kind]: [...s[kind], ...Array.from({ length: n }, () => emptyServer())] }));
+    // Smart default: a DR use case pre-selects Active-passive replication for new servers.
+    const fresh = () => ({ ...emptyServer(), replication: dr ? "Active-passive" : "" });
+    setServers((s) => ({ ...s, [kind]: [...s[kind], ...Array.from({ length: n }, fresh)] }));
     setAddQty(1);
+  };
+
+  const [bulkBackup, setBulkBackup] = useState("");
+  const [bulkRep, setBulkRep] = useState(dr ? "Active-passive" : "");
+  const totalServers = servers.linux.length + servers.windows.length + servers.physical.length;
+  const applyToAll = () => {
+    if (!bulkBackup && !bulkRep) return;
+    const patchRow = (r: ServerRow) => ({ ...r, ...(bulkBackup ? { backup: bulkBackup } : {}), ...(bulkRep ? { replication: bulkRep } : {}) });
+    setServers((s) => ({ linux: s.linux.map(patchRow), windows: s.windows.map(patchRow), physical: s.physical.map(patchRow) }));
   };
 
   const downloadTemplate = () => {
@@ -758,6 +798,8 @@ export function Inventory({
     { label: "Role" },
     ...(kind !== "physical" ? [{ label: "Hypervisor", tip: "Where this VM runs today." }] : []),
     { label: "DR protect", tip: "Where the server should run: production site, DR site, or both." },
+    { label: "Backup", tip: "Managed backup of this server (priced per protected server)." },
+    { label: "Replication", tip: "None, Active-passive (a standby copy at a second site) or Active-active (both sites live)." },
     { label: "Disks" },
     { label: "" },
   ];
@@ -827,6 +869,39 @@ export function Inventory({
           </button>
           <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" aria-label="Upload a CSV file of servers" onChange={(e) => onFile(e.target.files?.[0])} />
         </div>
+
+        {totalServers > 0 && (
+          <div className="flex flex-wrap items-end gap-2 rounded-2xl border border-border bg-white p-3">
+            <p className="w-full text-xs font-semibold text-opex-navy">
+              Backup &amp; replication for all {totalServers} server{totalServers === 1 ? "" : "s"}
+              <span className="ml-1 font-normal text-muted">
+                {dr ? "· You chose disaster recovery, so Active-passive is suggested." : "· Set once here, then adjust individual servers below."}
+              </span>
+            </p>
+            <label className="min-w-[140px]">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Managed backup</span>
+              <SelectInput value={bulkBackup} onChange={setBulkBackup} options={BACKUP_OPTIONS} placeholder="Leave as is" />
+            </label>
+            <label className="min-w-[180px]">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Replication</span>
+              <SelectInput value={bulkRep} onChange={setBulkRep} options={REPLICATION_OPTIONS} placeholder="Leave as is" />
+            </label>
+            <button
+              type="button"
+              onClick={applyToAll}
+              disabled={!bulkBackup && !bulkRep}
+              className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-opex-navy px-4 text-[13px] font-semibold text-white hover:bg-opex-navy-light disabled:opacity-50"
+            >
+              Apply to all servers
+            </button>
+          </div>
+        )}
+
+        {errors["servers-protection"] && (
+          <p role="alert" className="text-xs font-medium text-[#b4532a]">
+            {errors["servers-protection"]}. Use ‘Apply to all servers’ above, or choose per server (highlighted).
+          </p>
+        )}
 
         {csv && (
           <CsvPreview kind={kind} result={csv.result} fileName={csv.fileName} existing={rows.length} onCancel={() => setCsv(null)} onImport={doImport} />

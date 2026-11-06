@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/requirements/:path*", headers: noindex },
       { source: "/api/requirements/:path*", headers: noindex },
+      { source: "/admin", headers: noindex },
+      { source: "/admin/:path*", headers: noindex },
+      { source: "/api/admin/:path*", headers: noindex },
     ];
   },
   turbopack: {

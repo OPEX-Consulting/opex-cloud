@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { FiPlus, FiX, FiCheck } from "react-icons/fi";
-import type { Answers, DataSize, PublicProject } from "@/lib/requirements/schema";
+import type { Answers, DataSize, PublicProject, QtyAnswer, Services } from "@/lib/requirements/schema";
 import {
   APPLICATIONS,
   BARE_METAL,
@@ -21,6 +21,8 @@ import {
   SOURCE_PLATFORMS,
   STORAGE_NEW_EXISTING,
   STORAGE_PERSONALITY,
+  STORAGE_TIERS,
+  STANDBY_OPTIONS,
   USE_CASES,
   YES_NO_NOT_SURE,
   isOpexDcHosting,
@@ -650,8 +652,97 @@ export function StepTarget({ a, patch, errors }: StepProps) {
           >
             <CheckChips values={t.storagePersonality} onChange={(v) => patch("target", { storagePersonality: v })} options={STORAGE_PERSONALITY} />
           </Field>
+          <Field
+            as="fieldset"
+            label="Storage tier for server disks"
+            required
+            error={errors.storageTier}
+            tip="Used to price your servers' boot and data disks. SSD is faster; HDD costs less per GB."
+          >
+            <RadioCards
+              name={`${id}-st`}
+              value={a.services.storageTier}
+              onChange={(v) => patch("services", { storageTier: v })}
+              options={STORAGE_TIERS}
+              columns={2}
+            />
+          </Field>
         </Section>
+
+        <ServicesSection a={a} patch={patch} errors={errors} />
       </div>
     </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Network, security & services (priced on the invoice)                */
+/* ------------------------------------------------------------------ */
+
+function QtyField({
+  label,
+  field,
+  value,
+  onChange,
+  suffix,
+  placeholder,
+  tip,
+  error,
+}: {
+  label: string;
+  field: string;
+  value: QtyAnswer;
+  onChange: (v: QtyAnswer) => void;
+  suffix?: string;
+  placeholder?: string;
+  tip?: string;
+  error?: string;
+}) {
+  const id = useId();
+  return (
+    <Field label={label} htmlFor={`${id}-${field}`} tip={tip} required error={error}>
+      <NumberInput
+        id={`${id}-${field}`}
+        suffix={suffix}
+        placeholder={placeholder}
+        disabled={value.notSure}
+        value={value.value}
+        invalid={Boolean(error)}
+        onChange={(v) => onChange({ value: v, notSure: false })}
+      />
+      <NotSureCheck checked={value.notSure} onChange={(v) => onChange({ value: v ? null : value.value, notSure: v })} />
+    </Field>
+  );
+}
+
+export function ServicesSection({ a, patch, errors }: StepProps) {
+  const id = useId();
+  const sv = a.services;
+  const set = (k: keyof Services) => (v: QtyAnswer) => patch("services", { [k]: v } as Partial<Services>);
+  return (
+    <Section
+      title="Network, security & services"
+      intro="These quantities are priced on your pro-forma invoice. Enter 0 if you don't need an item. ‘Not sure’ is fine: we'll price a sensible default, mark it as assumed, and confirm it with you."
+    >
+      <div className="grid gap-5 sm:grid-cols-2">
+        <QtyField label="Object storage" field="obj" suffix="GB" placeholder="e.g. 1000" value={sv.objectStorageGb} onChange={set("objectStorageGb")} error={errors.objectStorageGb} tip="S3-compatible buckets for backups, media and archives. 1 TB = 1,000 GB." />
+        <QtyField label="Static public IP addresses" field="ips" placeholder="e.g. 2" value={sv.publicIps} onChange={set("publicIps")} error={errors.publicIps} tip="Fixed internet-facing IPv4 addresses for the whole environment." />
+        <QtyField label="Internet sites" field="sites" placeholder="e.g. 1" value={sv.internetSites} onChange={set("internetSites")} error={errors.internetSites} tip="How many sites need OPEX Cloud-provided internet access." />
+        <QtyField label="Internet bandwidth per site" field="mbps" suffix="Mbps" placeholder="e.g. 100" value={sv.bandwidthMbps} onChange={set("bandwidthMbps")} error={errors.bandwidthMbps} tip="Unmetered internet bandwidth you need at each site." />
+        <QtyField label="VPN appliances" field="vpn" placeholder="e.g. 1" value={sv.vpn} onChange={set("vpn")} error={errors.vpn} tip="Site-to-site or remote-access VPN gateways." />
+        <QtyField label="Firewalls" field="fw" placeholder="e.g. 1" value={sv.firewalls} onChange={set("firewalls")} error={errors.firewalls} tip="Managed firewall instances (pfSense)." />
+        <QtyField label="Load balancers" field="lb" placeholder="e.g. 0" value={sv.loadBalancers} onChange={set("loadBalancers")} error={errors.loadBalancers} tip="Spread traffic across several servers, e.g. web farms." />
+        <QtyField label="Monitoring services" field="mon" placeholder="e.g. 1" value={sv.monitoring} onChange={set("monitoring")} error={errors.monitoring} tip="Agreed infrastructure monitoring services." />
+      </div>
+      <Field
+        as="fieldset"
+        label="Standby compute and storage at a secondary site?"
+        required
+        error={errors.standby}
+        tip="Replication copies your data; standby capacity reserves matching servers and disks at the second site so replicated servers can start straight away."
+      >
+        <RadioCards name={`${id}-sb`} value={sv.standby} onChange={(v) => patch("services", { standby: v })} options={STANDBY_OPTIONS} columns={3} />
+      </Field>
+    </Section>
   );
 }

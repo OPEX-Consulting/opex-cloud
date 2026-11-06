@@ -5,7 +5,7 @@ import { draftSchema } from "@/lib/requirements/schema";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Autosave a partial draft. Accepts incomplete answers; rejects once submitted or expired. */
+/** Autosave a partial draft. Accepts incomplete answers (also after submitting: status becomes "edited"); rejects once expired. */
 export async function PUT(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!checkToken(token)) return json({ success: false, message: "This link is not recognised." }, 404);
@@ -19,7 +19,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ token: s
   try {
     const result = await saveDraft(token, parsed.data);
     if (!result.ok) return json({ success: false, message: result.message }, result.status);
-    return json({ success: true, updatedAt: result.updatedAt });
+    return json({ success: true, updatedAt: result.updatedAt, status: result.status, invoice: result.invoice });
   } catch (error) {
     console.error("[requirements] draft save failed", error);
     return json({ success: false, message: "Saving failed. We'll keep trying." }, 500);

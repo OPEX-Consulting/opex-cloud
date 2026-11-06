@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { FiAlertCircle, FiEdit2 } from "react-icons/fi";
 import { NOT_SURE, USE_CASES } from "@/lib/requirements/options";
-import type { Answers, DataSize, ServerKind, ServerRow, Servers } from "@/lib/requirements/schema";
+import type { Answers, DataSize, QtyAnswer, ServerKind, ServerRow, Servers } from "@/lib/requirements/schema";
 import { KIND_LABELS, STEPS, fmt, listWithOther, overallTotals, rowStorage, totalsFor, type Missing } from "@/lib/requirements/logic";
 
 const dash = <span className="text-[#b6bfcc]">—</span>;
@@ -87,6 +87,8 @@ function ServerTable({ kind, rows }: { kind: ServerKind; rows: ServerRow[] }) {
     ["Role", (r) => other(r.role, r.roleOther)],
     ...(kind !== "physical" ? ([["Hypervisor", (r: ServerRow) => other(r.hypervisor, r.hypervisorOther)]] as [string, (r: ServerRow) => ReactNode][]) : []),
     ["DR protect", (r) => r.drProtect],
+    ["Backup", (r) => r.backup],
+    ["Replication", (r) => r.replication],
     ...(kind === "linux"
       ? ([["Kernel / fstab / lsblk", (r: ServerRow) => [r.kernel, r.fstab && "fstab ✓", r.lsblk && "lsblk ✓"].filter(Boolean).join(" · ")]] as [
           string,
@@ -128,6 +130,8 @@ function ServerTable({ kind, rows }: { kind: ServerKind; rows: ServerRow[] }) {
     </div>
   );
 }
+
+const qty = (q: QtyAnswer, unit = "") => (q.notSure ? NOT_SURE : q.value == null ? "" : `${fmt(q.value)}${unit ? ` ${unit}` : ""}`);
 
 export function Summary({
   a,
@@ -214,6 +218,21 @@ export function Summary({
         <Row label="Storage personality">{a.target.storagePersonality.join(", ")}</Row>
         <Row label="Media type">{other(a.target.mediaType, a.target.mediaTypeOther)}</Row>
         <Row label="Data resiliency">{a.target.dataResiliency}</Row>
+        <Row label="Storage tier" missing={miss("storageTier")}>{a.services.storageTier}</Row>
+        <Row label="Object storage" missing={miss("objectStorageGb")}>{qty(a.services.objectStorageGb, "GB")}</Row>
+        <Row label="Static public IPs" missing={miss("publicIps")}>{qty(a.services.publicIps)}</Row>
+        <Row label="Internet" missing={miss("internetSites") || miss("bandwidthMbps")}>
+          {a.services.internetSites.value != null || a.services.internetSites.notSure || a.services.bandwidthMbps.value != null || a.services.bandwidthMbps.notSure
+            ? `${qty(a.services.internetSites) || "?"} site(s) at ${qty(a.services.bandwidthMbps, "Mbps") || "?"}`
+            : ""}
+        </Row>
+        <Row label="VPN / firewalls / load balancers" missing={miss("vpn") || miss("firewalls") || miss("loadBalancers")}>
+          {[qty(a.services.vpn), qty(a.services.firewalls), qty(a.services.loadBalancers)].some(Boolean)
+            ? `${qty(a.services.vpn) || "?"} / ${qty(a.services.firewalls) || "?"} / ${qty(a.services.loadBalancers) || "?"}`
+            : ""}
+        </Row>
+        <Row label="Monitoring services" missing={miss("monitoring")}>{qty(a.services.monitoring)}</Row>
+        <Row label="Standby at a secondary site" missing={miss("standby")}>{a.services.standby}</Row>
       </Group>
 
       <Group step={4} onEdit={onEdit} missingCount={count(4)}>
@@ -227,7 +246,7 @@ export function Summary({
         {missing
           .filter((m) => m.field.startsWith("servers-"))
           .map((m) => (
-            <Row key={m.field} label={KIND_LABELS[m.field.slice(8) as ServerKind]} missing={m.label}>
+            <Row key={m.field} label={KIND_LABELS[m.field.slice(8) as ServerKind] ?? "Backup & replication"} missing={m.label}>
               {""}
             </Row>
           ))}

@@ -8,9 +8,10 @@ import {
   FiCheck,
   FiCheckCircle,
   FiClock,
+  FiEdit2,
+  FiFileText,
   FiCloudOff,
   FiDownload,
-  FiLock,
   FiMail,
   FiPhone,
   FiPrinter,
@@ -26,8 +27,11 @@ import {
   type PortalPayload,
   type PublicProject,
   type Servers,
+  type PortalStatus,
+  SUBMITTED_STATUSES,
 } from "@/lib/requirements/schema";
-import { STEPS, findMissing, overallTotals } from "@/lib/requirements/logic";
+import { INVOICE_STEP, REVIEW_STEP, STEPS, findMissing, overallTotals } from "@/lib/requirements/logic";
+import { InvoiceStep } from "./InvoiceStep";
 import { StepContacts, StepObjectives, StepSource, StepTarget, type Patch } from "./Steps";
 import { Inventory } from "./Inventory";
 import { Summary } from "./Summary";
@@ -185,9 +189,11 @@ function download(name: string, data: string, type: string) {
 
 export default function Portal({ payload }: { payload: PortalPayload }) {
   const { token, project, mode } = payload;
-  const locked = payload.status === "submitted" || payload.status === "reviewed";
+  const [status, setStatus] = useState<PortalStatus>(payload.status);
+  const wasSubmitted = SUBMITTED_STATUSES.includes(payload.status);
 
-  const [screen, setScreen] = useState<Screen>(locked ? "submitted" : payload.expired ? "expired" : "welcome");
+  const [screen, setScreen] = useState<Screen>(wasSubmitted ? "submitted" : payload.expired ? "expired" : "welcome");
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => initialDraft(payload));
   const [visited, setVisited] = useState<Set<number>>(() => new Set());
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -220,7 +226,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
     const local = readLocal(token);
     const serverTime = payload.updatedAt ? new Date(payload.updatedAt).getTime() : 0;
     let next: Draft | null = null;
-    if (local && !locked) {
+    if (local && !wasSubmitted) {
       if (mode === "demo" && local.submittedAt) {
         setSubmittedAt(local.submittedAt);
         setScreen("submitted");
@@ -270,16 +276,13 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(d),
       });
-      if (res.status === 409) {
-        setScreen("submitted");
-        return;
-      }
       if (res.status === 410) {
         setScreen("expired");
         return;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = (await res.json()) as { updatedAt?: string };
+      const body = (await res.json()) as { updatedAt?: string; status?: PortalStatus };
+      if (body.status) setStatus(body.status);
       dirty.current = pending.current;
       retryDelay.current = 4000;
       setSaveState("saved");
@@ -301,6 +304,13 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
   useEffect(() => {
     flushRef.current = () => void flush();
   }, [flush]);
+
+  /** Save now and wait until the server has the latest answers (used before pricing / PDF download). */
+  const flushAndWait = useCallback(async () => {
+    if (mode === "demo") return;
+    for (let i = 0; i < 100 && inFlight.current; i++) await new Promise((r) => setTimeout(r, 100));
+    if (dirty.current || pending.current) await flush();
+  }, [flush, mode]);
 
   useEffect(() => {
     if (!ready.current || screen === "submitted" || screen === "done" || screen === "expired") return;
@@ -348,7 +358,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
 
   const goTo = (s: number) => {
     setVisited((v) => new Set(v).add(step));
-    setDraft((d) => ({ ...d, currentStep: Math.max(0, Math.min(5, s)) }));
+    setDraft((d) => ({ ...d, currentStep: Math.max(0, Math.min(INVOICE_STEP, s)) }));
     setScreen("form");
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -377,18 +387,15 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(latest.current),
         });
-        const body = (await res.json().catch(() => ({}))) as { submittedAt?: string; message?: string };
-        if (res.status === 409) {
-          setScreen("submitted");
-          return;
-        }
+        const body = (await res.json().catch(() => ({}))) as { submittedAt?: string; message?: string; status?: PortalStatus };
         if (!res.ok) throw new Error(body.message || "We couldn't submit just now.");
         setSubmittedAt(body.submittedAt ?? new Date().toISOString());
+        if (body.status) setStatus(body.status);
         writeLocal(token, { savedAt: new Date().toISOString(), draft: latest.current, submittedAt: body.submittedAt });
       }
       dirty.current = false;
-      setScreen("done");
-      window.scrollTo({ top: 0 });
+      setJustSubmitted(true);
+      goTo(INVOICE_STEP);
     } catch (e) {
       setSubmitError(
         e instanceof Error && e.message
@@ -458,7 +465,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="print:hidden">
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e8f5ec] text-[#15803d]">
-              {justDone ? <FiCheckCircle aria-hidden className="h-7 w-7" /> : <FiLock aria-hidden className="h-6 w-6" />}
+              {justDone ? <FiCheckCircle aria-hidden className="h-7 w-7" /> : <FiCheckCircle aria-hidden className="h-6 w-6" />}
             </span>
             <h1 className="mt-5 text-[28px] font-bold tracking-tight text-opex-navy">
               {justDone ? "Thank you – your requirements are with us" : "These requirements have been submitted"}
@@ -467,10 +474,19 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
               {submittedAt
                 ? `Submitted on ${new Date(submittedAt).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" })}. `
                 : ""}
-              {justDone
-                ? "Your answers are now locked so our engineers can work from a stable copy."
-                : "They're now read-only. If something needs to change, please contact your OPEX Cloud team."}
+              {status === "resubmitted"
+                ? "You've updated and resubmitted them. "
+                : ""}
+              You can still reopen and edit your answers: we&apos;ll see each change, and your invoice updates with a new version.
             </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button type="button" onClick={() => goTo(INVOICE_STEP)} className="opex-button-primary">
+                <FiFileText aria-hidden /> View pro-forma invoice
+              </button>
+              <button type="button" onClick={() => goTo(REVIEW_STEP)} className="opex-button-secondary">
+                <FiEdit2 aria-hidden /> Reopen and edit
+              </button>
+            </div>
           </div>
 
           {justDone && (
@@ -590,13 +606,14 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
 
   const stepState = (i: number) => {
     const done = !missing.some((m) => m.step === i);
-    if (i === 5) return "todo";
+    if (i >= REVIEW_STEP) return "todo";
     if (visited.has(i)) return done ? "done" : "warn";
     return "todo";
   };
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
   const errors = errorsFor(step);
-  const wide = step === 4;
+  const wide = step === 4 || step === INVOICE_STEP;
+  const submittedNow = SUBMITTED_STATUSES.includes(status);
 
   return (
     <Shell project={headerProject} mode={mode} right={<SaveIndicator state={saveState} last={lastSaved} now={now} />}>
@@ -604,7 +621,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
       <div className="sticky top-16 z-30 border-b border-border bg-white/90 px-4 py-2.5 backdrop-blur lg:hidden print:hidden">
         <div className="flex items-center justify-between text-xs">
           <span className="font-semibold text-opex-navy">
-            {step + 1}/6 · {STEPS[step].title}
+            {step + 1}/{STEPS.length} · {STEPS[step].title}
           </span>
           <span className="text-muted">{progress}%</span>
         </div>
@@ -676,11 +693,17 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
           {step === 5 && (
             <>
               <header className="mb-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-opex-blue">Step 6 of 6</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-opex-blue">Step 6 of {STEPS.length}</p>
                 <h2 className="mt-1.5 text-2xl font-bold tracking-tight text-opex-navy sm:text-[28px]">Review & submit</h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary">
-                  Check your answers below. Once you submit, they&apos;re locked and sent to the OPEX Cloud team.
+                  Check your answers below, then submit them to the OPEX Cloud team. Next you&apos;ll see your pro-forma invoice. You can come
+                  back and change anything after submitting.
                 </p>
+                {status === "edited" && (
+                  <p className="mt-3 inline-flex rounded-full bg-[#fdf1ec] px-3 py-1 text-xs font-semibold text-[#8a3a17]">
+                    You&apos;ve changed answers since you last submitted. Resubmit to send the update.
+                  </p>
+                )}
               </header>
               {missing.length > 0 ? (
                 <div role="alert" className="mb-5 rounded-2xl border border-[#f1c9b4] bg-[#fdf6f2] p-4 sm:p-5">
@@ -707,6 +730,37 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
             </>
           )}
 
+          {step === INVOICE_STEP && (
+            <InvoiceStep
+              token={token}
+              mode={mode}
+              draft={draft}
+              flush={flushAndWait}
+              onEdit={goTo}
+              justSubmitted={justSubmitted}
+              submittedBanner={
+                justSubmitted ? (
+                  <div className="mb-5 flex items-center gap-2 rounded-2xl border border-[#cfe9d7] bg-[#f1faf4] p-4 text-sm font-semibold text-[#15803d]">
+                    <FiCheckCircle aria-hidden /> Thank you – your requirements are with us
+                    {submittedAt ? ` (submitted ${new Date(submittedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })})` : ""}.
+                  </div>
+                ) : status === "edited" || (!submittedNow && mode === "live") ? (
+                  <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-[#f1c9b4] bg-[#fdf6f2] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-[#8a3a17]">
+                      {status === "edited"
+                        ? "You've changed answers since you last submitted. Resubmit so our team works from the latest version."
+                        : "This invoice is a preview until you submit your requirements."}
+                    </p>
+                    <button type="button" onClick={submit} disabled={submitting} className="opex-button-primary shrink-0">
+                      {submitting ? <FiRefreshCw aria-hidden className="animate-spin" /> : <FiCheck aria-hidden />}{" "}
+                      {status === "edited" ? "Resubmit" : "Submit requirements"}
+                    </button>
+                  </div>
+                ) : null
+              }
+            />
+          )}
+
           {/* Navigation */}
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between print:hidden">
             {step > 0 ? (
@@ -719,7 +773,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
               </button>
             )}
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
-              {step < 5 ? (
+              {step === INVOICE_STEP ? null : step < REVIEW_STEP || (step === REVIEW_STEP && submittedNow) ? (
                 <button type="button" onClick={() => goTo(step + 1)} className="opex-button-primary">
                   Continue to {STEPS[step + 1].title.toLowerCase()} <FiArrowRight aria-hidden />
                 </button>
@@ -731,7 +785,7 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
                     </>
                   ) : (
                     <>
-                      Submit requirements <FiCheck aria-hidden />
+                      {status === "edited" ? "Resubmit and view invoice" : "Submit and view invoice"} <FiCheck aria-hidden />
                     </>
                   )}
                 </button>
@@ -741,7 +795,12 @@ export default function Portal({ payload }: { payload: PortalPayload }) {
                   {submitError}
                 </p>
               )}
-              {step < 5 && <p className="text-[11px] text-muted sm:text-right">You can come back and change anything before you submit.</p>}
+              {step < REVIEW_STEP && <p className="text-[11px] text-muted sm:text-right">You can come back and change anything, even after you submit.</p>}
+              {step === REVIEW_STEP && !submittedNow && (
+                <button type="button" onClick={() => goTo(INVOICE_STEP)} className="text-xs font-semibold text-opex-blue underline underline-offset-4 sm:text-right">
+                  Preview the invoice first
+                </button>
+              )}
             </div>
           </div>
         </div>

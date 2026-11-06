@@ -340,3 +340,30 @@ export const HYPERVISORS: Option[] = [
 
 export const optionLabel = (o: Option) =>
   `${o.label ?? o.value}${o.flag ? ` (${o.flag})` : ""}`;
+
+/* ---------- Pricing questions (Phase 2: requirements to invoice) ---------- */
+
+export const STORAGE_TIERS: Option[] = [
+  { value: "SSD", label: "SSD / NVMe for all disks", hint: "Fastest. Best for databases and busy applications." },
+  { value: "HDD", label: "HDD for all disks", hint: "Lower cost. Suits archives, file shares and backups." },
+  { value: "Mixed", label: "SSD for boot disks, HDD for data disks", hint: "A balance of speed and cost." },
+  { value: NOT_SURE },
+];
+
+export const BACKUP_OPTIONS: Option[] = [{ value: "Yes" }, { value: "No" }];
+
+export const REPLICATION_OPTIONS: Option[] = [
+  { value: "None", hint: "No copy at a second site." },
+  { value: "Active-passive", hint: "A standby copy at a second site that takes over if the main site fails." },
+  { value: "Active-active", hint: "Both sites run live and share the load." },
+  { value: NOT_SURE },
+];
+
+export const STANDBY_OPTIONS: Option[] = [
+  { value: "Yes", hint: "Reserve matching compute and storage at the secondary site for replicated servers." },
+  { value: "No", hint: "Replication only. Standby capacity is arranged later if needed." },
+  { value: NOT_SURE },
+];
+
+/** Use cases that imply replication to a second site. */
+export const DR_USE_CASES = ["dr", "multisite_dr", "managed_dr"];

@@ -341,7 +341,7 @@ export function Section({ title, intro, children }: { title?: string; intro?: Re
 export function StepHeader({ index, title, intro }: { index: number; title: string; intro: ReactNode }) {
   return (
     <header className="mb-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-opex-blue">Step {index + 1} of 6</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-opex-blue">Step {index + 1} of 7</p>
       <h2 className="mt-1.5 text-2xl font-bold tracking-tight text-opex-navy sm:text-[28px]">{title}</h2>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary">{intro}</p>
     </header>

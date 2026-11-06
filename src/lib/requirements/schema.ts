@@ -19,6 +19,41 @@ export const dataSizeSchema = z
   .default({ value: null, unit: "GB", notSure: false });
 export type DataSize = z.infer<typeof dataSizeSchema>;
 
+/** A quantity answer: a number, or "Not sure" (priced on a default and flagged as assumed). */
+export const qtySchema = z
+  .object({ value: num, notSure: z.boolean().default(false) })
+  .default({ value: null, notSure: false });
+export type QtyAnswer = z.infer<typeof qtySchema>;
+
+const emptyQty = { value: null, notSure: false };
+
+export const servicesSchema = z
+  .object({
+    storageTier: str(40),
+    objectStorageGb: qtySchema,
+    publicIps: qtySchema,
+    internetSites: qtySchema,
+    bandwidthMbps: qtySchema,
+    vpn: qtySchema,
+    firewalls: qtySchema,
+    loadBalancers: qtySchema,
+    monitoring: qtySchema,
+    standby: str(20),
+  })
+  .default({
+    storageTier: "",
+    objectStorageGb: emptyQty,
+    publicIps: emptyQty,
+    internetSites: emptyQty,
+    bandwidthMbps: emptyQty,
+    vpn: emptyQty,
+    firewalls: emptyQty,
+    loadBalancers: emptyQty,
+    monitoring: emptyQty,
+    standby: "",
+  });
+export type Services = z.infer<typeof servicesSchema>;
+
 export const answersSchema = z.object({
   contact: z
     .object({
@@ -128,6 +163,7 @@ export const answersSchema = z.object({
       notes: longStr(4000),
     })
     .default({ sendSeparately: false, notes: "" }),
+  services: servicesSchema,
 });
 export type Answers = z.infer<typeof answersSchema>;
 
@@ -151,6 +187,10 @@ export const serverSchema = z.object({
   fstab: longStr(20000),
   lsblk: longStr(20000),
   disks: z.array(z.number().finite().nonnegative().max(1_000_000)).max(64).default([]),
+  /** Managed backup: "Yes" | "No" | "" (not answered). */
+  backup: str(10),
+  /** "None" | "Active-passive" | "Active-active" | "Not sure" | "" (not answered). */
+  replication: str(20),
 });
 export type ServerRow = z.infer<typeof serverSchema>;
 
@@ -167,7 +207,7 @@ export type Servers = z.infer<typeof serversSchema>;
 
 export const draftSchema = z.object({
   answers: answersSchema,
-  currentStep: z.number().int().min(0).max(5).default(0),
+  currentStep: z.number().int().min(0).max(6).default(0),
   servers: serversSchema,
 });
 export type Draft = z.infer<typeof draftSchema>;
@@ -203,7 +243,13 @@ export type PublicProject = {
   salesContactPhone: string;
 };
 
-export type PortalStatus = "invited" | "in_progress" | "submitted" | "reviewed";
+/**
+ * invited -> in_progress (first save) -> submitted -> edited (client changed answers after submitting)
+ * -> resubmitted (submitted again). "reviewed" is set by the OPEX team. Clients can always reopen and edit.
+ */
+export type PortalStatus = "invited" | "in_progress" | "submitted" | "edited" | "resubmitted" | "reviewed";
+
+export const SUBMITTED_STATUSES: PortalStatus[] = ["submitted", "resubmitted", "reviewed"];
 
 export type PortalPayload = {
   mode: "live" | "demo";
@@ -214,4 +260,41 @@ export type PortalPayload = {
   submittedAt: string | null;
   updatedAt: string | null;
   draft: Draft | null;
+};
+
+/** Client-safe invoice (never contains partner names or partner costs unless show_partner is on). */
+export type InvoiceLineView = {
+  n: number;
+  description: string;
+  qty: number;
+  unit: string;
+  unitPrice: number | null;
+  monthly: number | null;
+  toBeQuoted: boolean;
+  assumed: string | null;
+};
+
+export type InvoiceView = {
+  id: string | null;
+  number: string;
+  version: number;
+  status: "current" | "superseded" | "preview";
+  createdAt: string;
+  validUntil: string;
+  termMonths: number;
+  lines: InvoiceLineView[];
+  subtotal: number;
+  vatRate: number;
+  vat: number;
+  monthlyTotal: number;
+  termTotal: number | null;
+  amountDueMode: "first_month" | "term" | "deposit_pct";
+  amountDueNow: number;
+  amountDueLabel: string;
+  tbqCount: number;
+  assumedCount: number;
+  notes: string[];
+  partnerLine: string | null;
+  billTo: { name: string; address: string; contactName: string; contactEmail: string; contactPhone: string };
+  payment: { bankName: string; accountName: string; accountNumber: string; sortCode: string; reference: string; instructions: string };
 };

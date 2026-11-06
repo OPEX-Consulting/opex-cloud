@@ -6,7 +6,7 @@ import { findMissing } from "@/lib/requirements/logic";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Final submission: validates required items, saves, and locks the project. */
+/** Submission: validates required items, saves, marks submitted/resubmitted and issues the current invoice version. */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!checkToken(token)) return json({ success: false, message: "This link is not recognised." }, 404);
@@ -25,7 +25,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   try {
     const result = await submitDraft(token, parsed.data);
     if (!result.ok) return json({ success: false, message: result.message }, result.status);
-    return json({ success: true, submittedAt: result.updatedAt });
+    return json({ success: true, submittedAt: result.updatedAt, status: result.status, invoice: result.invoice });
   } catch (error) {
     console.error("[requirements] submit failed", error);
     return json({ success: false, message: "We couldn't submit just now. Your answers are saved – please try again shortly." }, 500);

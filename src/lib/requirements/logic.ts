@@ -8,7 +8,11 @@ export const STEPS = [
   { id: "target", title: "Target & hosting", short: "Target" },
   { id: "inventory", title: "Server inventory", short: "Servers" },
   { id: "review", title: "Review & submit", short: "Review" },
+  { id: "invoice", title: "Pro-forma invoice", short: "Invoice" },
 ] as const;
+
+export const REVIEW_STEP = 5;
+export const INVOICE_STEP = 6;
 
 export const KIND_LABELS: Record<ServerKind, string> = {
   linux: "Linux VMs",
@@ -88,6 +92,23 @@ export function findMissing(a: Answers, s: Servers): Missing[] {
 
   // Step 4
   if (!a.target.hosting) add(3, "hosting", "Hosting model");
+  const sv = a.services;
+  if (!sv.storageTier) add(3, "storageTier", "Storage tier for server disks (or ‘Not sure’)");
+  const qtys: [keyof typeof sv, string][] = [
+    ["objectStorageGb", "Object storage"],
+    ["publicIps", "Static public IP addresses"],
+    ["internetSites", "Internet sites"],
+    ["bandwidthMbps", "Internet bandwidth"],
+    ["vpn", "VPN appliances"],
+    ["firewalls", "Firewalls"],
+    ["loadBalancers", "Load balancers"],
+    ["monitoring", "Monitoring services"],
+  ];
+  for (const [k, label] of qtys) {
+    const q = sv[k] as { value: number | null; notSure: boolean };
+    if (q.value == null && !q.notSure) add(3, k, `${label} (a number, 0, or ‘Not sure’)`);
+  }
+  if (!sv.standby) add(3, "standby", "Standby capacity at a secondary site");
 
   // Step 5
   const all: [ServerKind, ServerRow[]][] = [
@@ -98,6 +119,9 @@ export function findMissing(a: Answers, s: Servers): Missing[] {
   const count = all.reduce((n, [, rows]) => n + rows.length, 0);
   if (count === 0 && !a.inventory.sendSeparately)
     add(4, "servers", "At least one server (or tick ‘I'll send the inventory separately’)");
+  const noProtection = all.reduce((n, [, rows]) => n + rows.filter((r) => !r.backup || !r.replication).length, 0);
+  if (noProtection)
+    add(4, "servers-protection", `${noProtection} server${noProtection === 1 ? "" : "s"} missing a backup or replication choice`);
   for (const [kind, rows] of all) {
     const incomplete = rows.filter((r) => r.vcpu == null || r.ramGib == null || r.bootGib == null || !r.os);
     if (incomplete.length)
