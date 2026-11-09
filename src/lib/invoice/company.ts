@@ -46,10 +46,11 @@ export const INVOICE_TEXT = {
   },
 };
 
-/** Email alerts (Resend). Env vars override these defaults. */
+/** Email alerts (SMTP). Env vars override these defaults. */
 export const EMAIL = {
-  alertTo: process.env.INVOICE_ALERT_TO || "[PLACEHOLDER] finance@opexconsult.co.uk",
-  from: process.env.INVOICE_FROM || "OPEX Cloud <onboarding@resend.dev>",
+  alertTo: process.env.INVOICE_ALERT_TO || "info@opexconsult.co.uk",
+  /** Sender. Defaults to the SMTP login so the mail server accepts it. */
+  from: process.env.INVOICE_FROM || (process.env.SMTP_USER ? `OPEX Cloud <${process.env.SMTP_USER}>` : "OPEX Cloud <info@opexconsult.co.uk>"),
 };
 
 /** Invoice number: OPX-YYMMDD-NNN (NNN = running count for that day). [PLACEHOLDER format, confirm with finance] */

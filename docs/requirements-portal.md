@@ -26,9 +26,9 @@ Set in Vercel (Production + Preview) and in `.env.local` for local development:
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key. **Server only** – never prefix with `NEXT_PUBLIC_`. |
 | `ADMIN_PASSWORD` | Password for `/admin`. Changing it signs everyone out. Set (random) in Vercel. |
 | `CRON_SECRET` | Protects `/api/cron/fx`; Vercel cron sends it automatically. Set (random) in Vercel. |
-| `RESEND_API_KEY` | Optional. Without it, download emails are recorded in `notifications` as `skipped_no_provider` and the PDF is still served. |
-| `INVOICE_ALERT_TO` | Optional. Who gets the "invoice downloaded" email. Default `[PLACEHOLDER] finance@opexconsult.co.uk` (the address inside is used). |
-| `INVOICE_FROM` | Optional. Sender, e.g. `OPEX Cloud <billing@your-verified-domain>`. Default `OPEX Cloud <onboarding@resend.dev>` (Resend test sender: only delivers to the Resend account owner). |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | SMTP for download alerts (e.g. Google Workspace: `smtp.gmail.com`, 465, true, mailbox address, app password). Without host/user/pass, emails are recorded in `notifications` as `skipped_no_provider` and the PDF is still served. |
+| `INVOICE_ALERT_TO` | Optional. Who gets the "invoice downloaded" email. Default `info@opexconsult.co.uk`. |
+| `INVOICE_FROM` | Optional. Sender, e.g. `OPEX Cloud <billing@your-verified-domain>`. Default `OPEX Cloud <SMTP_USER>` (most SMTP servers only accept the logged-in mailbox or its aliases). |
 
 If either variable is missing, the portal runs in **demo mode** for every token (fake "Demo Client Ltd" project,
 answers saved to `localStorage` only). The token `demo` is always demo mode.
@@ -129,7 +129,7 @@ group by kind;
 
 Flow: answers → `src/lib/pricing/fromRequirements.ts` (engine inputs) → `src/lib/pricing/engine.ts` (pure, reproduces the
 sheet's Comparison and Client Quote tabs exactly; unit tests in `src/lib/pricing/*.test.ts`, run `npm test`) →
-`src/lib/invoice/service.ts` (versions) → `src/lib/invoice/pdf.ts` (pdf-lib, A4) → `src/lib/invoice/email.ts` (Resend).
+`src/lib/invoice/service.ts` (versions) → `src/lib/invoice/pdf.ts` (pdf-lib, A4) → `src/lib/invoice/email.ts` (SMTP).
 
 - **Server rows**: Linux, Windows and physical servers (physical: CPU cores = vCPU; Windows when the OS is a Windows
   Server edition). Identical rows are grouped with a quantity. Storage = boot + extra disks, split by the storage tier
@@ -166,8 +166,8 @@ Everything below is an obvious placeholder (`[PLACEHOLDER…]`) or a placeholder
 | Amount due now (first month incl. VAT) | `pricing_settings.amount_due_mode` (`first_month` / `term` / `deposit_pct`) and `deposit_pct` | /admin → Pricing → Settings |
 | FX policy (live + 3 % buffer) | `pricing_settings.fx_mode`, `fx_buffer_pct`, `fx_fixed_rate` | /admin → Pricing → Settings |
 | Defaults for "Not sure" answers (2 vCPU / 4 GB / 50 GB, backup Yes, replication by use case, SSD, 500 GB object if Object ticked, ≥1 IP, 1 site, 100 Mbps, 1 VPN, 1 firewall, 0 LB, 1 monitoring, standby No) | `src/lib/pricing/policy.ts` | Edit and deploy |
-| Download alert recipient / sender | env `INVOICE_ALERT_TO`, `INVOICE_FROM` (defaults in `src/lib/invoice/company.ts` → `EMAIL`) | Set in Vercel; verify the sender domain in Resend |
-| Email provider key | env `RESEND_API_KEY` (not set) | Create a Resend API key and set it in Vercel |
+| Download alert recipient / sender | env `INVOICE_ALERT_TO`, `INVOICE_FROM` (defaults in `src/lib/invoice/company.ts` → `EMAIL`) | Recipient default info@opexconsult.co.uk; set in Vercel to override |
+| SMTP mailbox | env `SMTP_*` (not set) | Set in Vercel (Preview + Production) |
 | OPEX data-centre list | `OPEX_DATA_CENTRES` in `src/lib/requirements/options.ts` (empty) | Add the confirmed sites |
 
 Rate cards, Unitellas sizes and WAN tiers are real values from the sheet; change them at /admin → Pricing (audited).

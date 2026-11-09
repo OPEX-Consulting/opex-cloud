@@ -1,5 +1,7 @@
-// Server-only: email OPEX when a client downloads an invoice PDF (Resend REST API).
+// Server-only: email OPEX when a client downloads an invoice PDF (SMTP via nodemailer).
+// Env: SMTP_HOST, SMTP_PORT (default 465), SMTP_SECURE (default true when port 465), SMTP_USER, SMTP_PASS.
 // Every attempt is written to the `notifications` outbox. Never throws: the download must not depend on email.
+import nodemailer from "nodemailer";
 import { db } from "../server/db";
 import { EMAIL } from "./company";
 import { describeChanges, type InvoiceRow } from "./service";
@@ -45,9 +47,9 @@ export async function notifyInvoiceDownload(args: {
       return { status: "debounced" };
     }
 
-    const key = process.env.RESEND_API_KEY;
-    if (!key) {
-      const { data } = await db().from("notifications").insert({ ...base, status: "skipped_no_provider", error: "RESEND_API_KEY not set" }).select("id").single();
+    const host = process.env.SMTP_HOST;
+    if (!host || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      const { data } = await db().from("notifications").insert({ ...base, status: "skipped_no_provider", error: "SMTP_HOST / SMTP_USER / SMTP_PASS not set" }).select("id").single();
       return { status: "skipped_no_provider", id: data?.id };
     }
 
@@ -80,26 +82,32 @@ export async function notifyInvoiceDownload(args: {
 <p>The PDF is attached.</p></div>`;
     const text = `${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\nWhat changed:\n${changes.map((c) => `- ${c}`).join("\n")}`;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const port = Number(process.env.SMTP_PORT || 465);
+    const transport = nodemailer.createTransport({
+      host,
+      port,
+      secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === "true" : port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    });
+    try {
+      const info = await transport.sendMail({
         from: EMAIL.from,
-        to: [to],
+        to,
         subject,
         html,
         text,
-        attachments: [{ filename: `${invoice.number}-v${invoice.version}.pdf`, content: Buffer.from(pdf).toString("base64") }],
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
-    const body = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
-    if (!res.ok) {
-      await db().from("notifications").update({ status: "failed", error: `HTTP ${res.status}: ${body.message ?? ""}`.slice(0, 500) }).eq("id", pending?.id);
+        attachments: [{ filename: `${invoice.number}-v${invoice.version}.pdf`, content: Buffer.from(pdf), contentType: "application/pdf" }],
+      });
+      await db().from("notifications").update({ status: "sent", provider_id: info.messageId ?? null, sent_at: new Date().toISOString() }).eq("id", pending?.id);
+      return { status: "sent", id: info.messageId };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await db().from("notifications").update({ status: "failed", error: `SMTP: ${msg}`.slice(0, 500) }).eq("id", pending?.id);
       return { status: "failed" };
     }
-    await db().from("notifications").update({ status: "sent", provider_id: body.id ?? null, sent_at: new Date().toISOString() }).eq("id", pending?.id);
-    return { status: "sent", id: body.id };
   } catch (e) {
     console.error("[invoice email] failed", e);
     try {
