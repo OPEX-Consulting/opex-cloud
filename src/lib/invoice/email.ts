@@ -47,7 +47,7 @@ export async function notifyInvoiceDownload(args: {
       return { status: "debounced" };
     }
 
-    const host = process.env.SMTP_HOST;
+    const host = (process.env.SMTP_HOST ?? "").trim().replace(/^[a-z]+:\/\//i, "").replace(/\/.*$/, "").replace(/:\d+$/, "") || undefined;
     if (!host || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
       const { data } = await db().from("notifications").insert({ ...base, status: "skipped_no_provider", error: "SMTP_HOST / SMTP_USER / SMTP_PASS not set" }).select("id").single();
       return { status: "skipped_no_provider", id: data?.id };
