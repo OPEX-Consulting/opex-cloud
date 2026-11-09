@@ -158,7 +158,7 @@ Everything below is an obvious placeholder (`[PLACEHOLDER…]`) or a placeholder
 | What | Where | How to replace |
 | --- | --- | --- |
 | Logo (text "OPEX Cloud" + "[PLACEHOLDER: logo]") | `src/lib/invoice/company.ts` → `COMPANY.logoText`; drawing in `src/lib/invoice/pdf.ts` (header band) | Edit the text, or embed a PNG with `doc.embedPng` in the header |
-| Registered address, billing email, billing phone | `src/lib/invoice/company.ts` → `COMPANY.address/email/phone` | Edit and deploy |
+| Registered address (email info@opexconsult.co.uk and phone +234 (0)802 461 1363 confirmed 9 Nov 2026) | `src/lib/invoice/company.ts` → `COMPANY.address/email/phone` | Edit and deploy |
 | RC number, TIN, VAT number | `src/lib/invoice/company.ts` → `COMPANY.rcNumber/tin/vatNumber` | Edit and deploy |
 | Bank name, account name, account number, sort code, payment terms | `src/lib/invoice/company.ts` → `PAYMENT` | Edit and deploy |
 | Legal footer ("not a tax invoice…") | `src/lib/invoice/company.ts` → `INVOICE_TEXT.legalFooter` | Edit and deploy |
