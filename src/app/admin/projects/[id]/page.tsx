@@ -1,3 +1,4 @@
+import { amountDue } from "@/lib/invoice/due";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
@@ -96,7 +97,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
                     <td className="py-2 pr-3">{i.created_reason}</td>
                     <td className="py-2 pr-3 text-right tabular-nums">{ngn(i.subtotal)}</td>
                     <td className="py-2 pr-3 text-right tabular-nums">{ngn(i.monthly_total)}</td>
-                    <td className="py-2 pr-3 text-right tabular-nums">{ngn(i.amount_due_now)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{ngn(amountDue(i).amount)}</td>
                     <td className="py-2 pr-3">{i.chosen_partner}</td>
                     <td className="py-2 pr-3 text-xs" title={i.fx_source}>{i.fx_rate_used}</td>
                     <td className="py-2 pr-3">{i.download_count}</td>

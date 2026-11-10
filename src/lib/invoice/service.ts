@@ -1,3 +1,4 @@
+import { amountDue } from "./due";
 // Server-only: invoice versions for a project.
 //
 // Versioning rule:
@@ -207,7 +208,8 @@ async function markIssued(row: InvoiceRow, reason: Reason): Promise<InvoiceRow> 
 }
 
 export function rowToView(row: InvoiceRow, showPartner: boolean): InvoiceView {
-  return buildInvoiceView({
+  const due = amountDue(row);
+  const view = buildInvoiceView({
     id: row.id,
     number: row.number,
     version: row.version,
@@ -219,6 +221,7 @@ export function rowToView(row: InvoiceRow, showPartner: boolean): InvoiceView {
     settings: { showPartner },
     billTo: row.inputs_snapshot.billTo,
   });
+  return { ...view, amountDueNow: due.amount, amountDueLabel: due.label };
 }
 
 /** Human-readable differences between two versions (for the OPEX email). */

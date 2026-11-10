@@ -40,6 +40,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
     let pdf: Uint8Array | null = null;
     let filename = `${inv.number}-v${inv.version}.pdf`;
     let zohoNumber: string | undefined;
+    let zohoTotal: number | null = null;
     let zohoStatus = "not connected";
     let warning: string | undefined;
     try {
@@ -53,11 +54,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
           let number = sameOrg ? (inv.zoho_invoice_number ?? null) : null;
           if (id) {
             zohoStatus = "reused";
+            zohoTotal = inv.zoho_total != null ? Number(inv.zoho_total) : null;
           } else {
             const r = await syncInvoiceToZoho(inv, prev, { conn });
             const now = new Date().toISOString();
             id = r.zoho_invoice_id;
             number = r.zoho_invoice_number;
+            zohoTotal = r.zoho_total;
             await saveZohoFields(inv.id, {
               zoho_invoice_id: r.zoho_invoice_id,
               zoho_org_id: conn.org_id,
@@ -108,6 +111,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
         customerName: row.inputs_snapshot.billTo.name || found.p.customer_name || "",
         projectName: found.p.project_name ?? "",
         zohoNumber,
+        zohoTotal,
         zohoStatus,
         warning,
       }),

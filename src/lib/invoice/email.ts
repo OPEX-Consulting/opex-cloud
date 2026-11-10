@@ -1,3 +1,4 @@
+import { amountDue } from "./due";
 // Server-only: email OPEX when a client downloads an invoice PDF (SMTP via nodemailer).
 // Env: SMTP_HOST, SMTP_PORT (default 465), SMTP_SECURE (default true when port 465), SMTP_USER, SMTP_PASS.
 // Every attempt is written to the `notifications` outbox. Never throws: the download must not depend on email.
@@ -27,6 +28,8 @@ export async function notifyInvoiceDownload(args: {
   /** Filename of the PDF that was served (defaults to NUMBER-vN.pdf). */
   filename?: string;
   zohoNumber?: string;
+  /** Total of the Zoho Books invoice, when one exists (wins over the computed amount). */
+  zohoTotal?: number | null;
   /** 'created' | 'reused' | 'not connected' | 'failed: msg' */
   zohoStatus?: string;
   warning?: string;
@@ -44,7 +47,8 @@ export async function notifyInvoiceDownload(args: {
       .gte("created_at", since)
       .limit(1);
 
-    const subject = `Invoice downloaded: ${args.customerName || "client"} · ${invoice.number} v${invoice.version} · ${naira(Number(invoice.amount_due_now))} due`;
+    const due = amountDue({ ...invoice, zoho_total: args.zohoTotal ?? (invoice as { zoho_total?: number | null }).zoho_total ?? null });
+    const subject = `Invoice downloaded: ${args.customerName || "client"} · ${invoice.number} v${invoice.version} · ${naira(due.amount)} due`;
     const to = cleanAddress(EMAIL.alertTo);
     const base = { kind: "invoice_download", project_id: invoice.project_id, invoice_id: invoice.id, to_address: to, subject };
 
@@ -77,7 +81,7 @@ export async function notifyInvoiceDownload(args: {
       ["Project", args.projectName || "—"],
       ["Invoice", `${invoice.number} (version ${invoice.version})`],
       ["Monthly total (incl. VAT)", naira(Number(invoice.monthly_total))],
-      ["Amount due now", naira(Number(invoice.amount_due_now))],
+      [due.label, naira(due.amount)],
       ["Partner (internal)", invoice.chosen_partner],
       ["FX used (internal)", `${invoice.fx_rate_used} – ${invoice.fx_source}`],
       ["Zoho Books invoice", args.zohoNumber || "—"],
