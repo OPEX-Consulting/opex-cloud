@@ -25,7 +25,14 @@ export async function Flash({ searchParams }: { searchParams: SP }) {
 
 export function AdminShell({ active, children }: { active: "projects" | "pricing" | "zoho"; children: ReactNode }) {
   const tab = (href: string, label: string, on: boolean) => (
-    <Link href={href} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${on ? "bg-white/15 text-white" : "text-white/70 hover:text-white"}`}>
+    // Inline colour: the unlayered global `a { color: inherit }` in globals.css beats Tailwind's layered text-* utilities,
+    // which left these tabs dark-on-navy (invisible).
+    <Link
+      href={href}
+      aria-current={on ? "page" : undefined}
+      className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${on ? "bg-white/15" : "opacity-75 hover:opacity-100"}`}
+      style={{ color: "#ffffff" }}
+    >
       {label}
     </Link>
   );
