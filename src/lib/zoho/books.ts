@@ -65,7 +65,8 @@ export function buildInvoicePayload(row: InvoiceRow, customerId: string, taxId: 
     .filter((l) => !l.toBeQuoted && l.unitPrice !== null)
     .map((l) => ({
       name: l.description,
-      description: l.unit,
+      // Rates are multiplied by months, so say so on the line (e.g. "server / month × 12 months").
+      description: months > 1 ? `${l.unit} × ${months} months` : l.unit,
       quantity: l.qty,
       rate: round2((l.unitPrice ?? 0) * months),
       tax_id: taxId,

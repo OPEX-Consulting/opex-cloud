@@ -95,7 +95,7 @@ test("payload excludes TBQ lines, applies months to rate and sets tax_id", () =>
   assert.equal(p.terms, "Due on Receipt");
   assert.equal(p.payment_terms, 0);
   assert.equal(p.line_items.length, 1);
-  assert.deepEqual(p.line_items[0], { name: "Linux VM", description: "per VM / month", quantity: 2, rate: 150.02, tax_id: "tax75" });
+  assert.deepEqual(p.line_items[0], { name: "Linux VM", description: "per VM / month × 3 months", quantity: 2, rate: 150.02, tax_id: "tax75" });
   assert.match(p.notes, /To be quoted/);
 });
 
