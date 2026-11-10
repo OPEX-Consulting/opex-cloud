@@ -1,11 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildInvoicePayload, syncInvoiceToZoho, fetchZohoPdf } from "./books";
-import { accessToken, authUrl, exchangeCode, isAllowedAccountsServer, type ZohoConn, type ZohoStore } from "./client";
+import { accessToken, assertOrgAllowed, authUrl, exchangeCode, isAllowedAccountsServer, type ZohoConn, type ZohoStore } from "./client";
 import type { InvoiceRow } from "../invoice/service";
 
 process.env.ZOHO_CLIENT_ID = "cid";
 process.env.ZOHO_CLIENT_SECRET = "csecret";
+process.env.ZOHO_ORG_ID = "org1";
 
 type Call = { method: string; url: URL; body: unknown };
 
@@ -170,7 +171,7 @@ test("previous Zoho invoice is voided only when unpaid", async () => {
         "POST /invoices/zi1/status/void": () => ({ code: 0 }),
       }),
     );
-    const r = await syncInvoiceToZoho(row(), prevRow({ zoho_invoice_id: "zi1", zoho_voided_at: null }), { f, conn: c, store: memStore(c).store, months: 1 });
+    const r = await syncInvoiceToZoho(row(), prevRow({ zoho_invoice_id: "zi1", zoho_voided_at: null, zoho_org_id: "org1" }), { f, conn: c, store: memStore(c).store, months: 1 });
     assert.equal(r.voidedPrev, "zi1");
     assert.equal(r.voidSkipped, null);
     assert.ok(calls.some((x) => x.url.pathname.endsWith("/invoices/zi1/status/void")));
@@ -184,7 +185,7 @@ test("previous Zoho invoice is voided only when unpaid", async () => {
         "GET /invoices/zi1": () => ({ code: 0, invoice: { invoice_id: "zi1", invoice_number: "INV-1", total: 107.5, balance: 50, status: "partially_paid" } }),
       }),
     );
-    const r = await syncInvoiceToZoho(row(), prevRow({ zoho_invoice_id: "zi1", zoho_voided_at: null }), { f, conn: c, store: memStore(c).store, months: 1 });
+    const r = await syncInvoiceToZoho(row(), prevRow({ zoho_invoice_id: "zi1", zoho_voided_at: null, zoho_org_id: "org1" }), { f, conn: c, store: memStore(c).store, months: 1 });
     assert.equal(r.voidedPrev, null);
     assert.match(r.voidSkipped ?? "", /not voided/);
     assert.ok(!calls.some((x) => x.url.pathname.endsWith("/status/void")));
@@ -194,6 +195,19 @@ test("previous Zoho invoice is voided only when unpaid", async () => {
     const c = conn({ tax_id: "t" });
     const { f, calls } = mockFetch(invoiceRoutes(base));
     const r = await syncInvoiceToZoho(row(), prevRow({ zoho_invoice_id: "zi1", zoho_voided_at: "2026-11-01T00:00:00Z" }), {
+      f,
+      conn: c,
+      store: memStore(c).store,
+      months: 1,
+    });
+    assert.equal(r.voidedPrev, null);
+    assert.ok(!calls.some((x) => x.url.pathname.includes("/invoices/zi1")));
+  }
+  // Previous invoice in another organisation (e.g. test org vs live) -> never touched
+  {
+    const c = conn({ tax_id: "t" });
+    const { f, calls } = mockFetch(invoiceRoutes(base));
+    const r = await syncInvoiceToZoho(row(), prevRow({ zoho_invoice_id: "zi1", zoho_voided_at: null, zoho_org_id: "otherOrg" }), {
       f,
       conn: c,
       store: memStore(c).store,
@@ -265,4 +279,26 @@ test("fetchZohoPdf returns bytes with accept=pdf and auth header", async () => {
   assert.deepEqual([...bytes], [37, 80, 68, 70]);
   assert.equal(calls[0].url.searchParams.get("accept"), "pdf");
   assert.equal(auth, "Zoho-oauthtoken at");
+});
+
+test("lock: no Zoho call without ZOHO_ORG_ID, or on a different organisation", async () => {
+  assert.doesNotThrow(() => assertOrgAllowed("org1"));
+  assert.throws(() => assertOrgAllowed("liveOrg"), /zoho locked/);
+  const saved = process.env.ZOHO_ORG_ID;
+  delete process.env.ZOHO_ORG_ID;
+  try {
+    assert.throws(() => assertOrgAllowed("org1"), /ZOHO_ORG_ID is not set/);
+    const c = conn({ tax_id: "t" });
+    let calls = 0;
+    const f = (async () => {
+      calls++;
+      throw new Error("network must not be called");
+    }) as unknown as typeof fetch;
+    await assert.rejects(syncInvoiceToZoho(row(), null, { f, conn: c, store: memStore(c).store, months: 1 }), /zoho locked/);
+    assert.equal(calls, 0);
+  } finally {
+    process.env.ZOHO_ORG_ID = saved;
+  }
+  const other = conn({ org_id: "liveOrg", tax_id: "t" });
+  await assert.rejects(syncInvoiceToZoho(row(), null, { conn: other, store: memStore(other).store, months: 1 }), /zoho locked/);
 });

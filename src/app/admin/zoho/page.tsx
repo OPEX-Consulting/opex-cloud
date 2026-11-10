@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/admin/auth";
-import { getConnection, listOrganizations } from "@/lib/zoho/client";
+import { envLabel, getConnection, listOrganizations, pinnedOrgId } from "@/lib/zoho/client";
 import { AdminShell, Card, Flash, btn, btnLight, input, when, type SP } from "../_ui";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,9 @@ export default async function Zoho({ searchParams }: { searchParams: SP }) {
   await requireAdmin();
   const configured = Boolean(process.env.ZOHO_CLIENT_ID);
   const conn = await getConnection().catch(() => null);
+  const pin = pinnedOrgId();
+  const env = envLabel();
+  const locked = Boolean(conn?.org_id && pin && conn.org_id === pin);
 
   let orgs: { organization_id: string; name: string }[] = [];
   let orgErr = "";
@@ -63,7 +66,20 @@ export default async function Zoho({ searchParams }: { searchParams: SP }) {
             ZOHO_CLIENT_ID is not set on the server, so Zoho cannot be connected yet.
           </p>
         )}
+        {!pin && (
+          <p className="mb-3 rounded-xl bg-[#fdf1ec] px-4 py-2.5 text-sm font-medium text-[#8a3a17]">
+            ZOHO_ORG_ID is not set for {env}, so no invoice will be created in Zoho. Downloads use the portal PDF.
+          </p>
+        )}
         <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1.5 text-sm">
+          <dt className="text-muted">Environment</dt>
+          <dd>{env}</dd>
+          <dt className="text-muted">Allowed organisation</dt>
+          <dd>{pin ?? "None (ZOHO_ORG_ID not set)"}</dd>
+          <dt className="text-muted">Creating invoices</dt>
+          <dd>
+            <b className={locked ? "text-[#15803d]" : "text-[#8a3a17]"}>{locked ? "Yes" : "No"}</b>
+          </dd>
           <dt className="text-muted">Status</dt>
           <dd>
             <b className={conn ? "text-[#15803d]" : "text-[#8a3a17]"}>{conn ? "Connected" : "Not connected"}</b>
@@ -103,7 +119,9 @@ export default async function Zoho({ searchParams }: { searchParams: SP }) {
                   <span className={`${input} flex items-center`}>
                     {o.name} <span className="ml-2 text-xs text-muted">{o.organization_id}</span>
                   </span>
-                  <button className={btn}>Use this</button>
+                  <button className={btn} disabled={o.organization_id !== pin}>
+                    {o.organization_id === pin ? "Use this" : "Not allowed here"}
+                  </button>
                 </form>
               ))}
             </div>

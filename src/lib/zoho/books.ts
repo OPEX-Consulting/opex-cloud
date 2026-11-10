@@ -3,10 +3,12 @@
 import { db } from "../server/db";
 import { round2 } from "../pricing/engine";
 import type { InvoiceRow } from "../invoice/service";
-import { defaultStore, zohoFetch, type Fetch, type ZohoConn, type ZohoStore } from "./client";
+import { assertOrgAllowed, defaultStore, zohoFetch, type Fetch, type ZohoConn, type ZohoStore } from "./client";
 
 export type ZohoFields = {
   zoho_invoice_id: string | null;
+  /** The Zoho organisation the invoice was created in (migration 0004). */
+  zoho_org_id: string | null;
   zoho_invoice_number: string | null;
   zoho_total: number | null;
   zoho_status: string | null;
@@ -138,7 +140,7 @@ export async function syncInvoiceToZoho(row: ZohoInvoiceRow, prev: ZohoInvoiceRo
   const store = opts.store ?? defaultStore;
   const conn = opts.conn ?? (await store.load());
   if (!conn || !conn.refresh_token) throw new Error("zoho not connected");
-  if (!conn.org_id) throw new Error("zoho organization not selected");
+  assertOrgAllowed(conn.org_id);
   const base = { conn, store };
   const months = opts.months ?? billingMonths();
 
@@ -153,7 +155,8 @@ export async function syncInvoiceToZoho(row: ZohoInvoiceRow, prev: ZohoInvoiceRo
 
   let voidedPrev: string | null = null;
   let voidSkipped: string | null = null;
-  if (prev?.zoho_invoice_id && !prev.zoho_voided_at) {
+  // Only void a previous invoice that lives in this same organisation: a test-org id must never touch the live books.
+  if (prev?.zoho_invoice_id && !prev.zoho_voided_at && prev.zoho_org_id === conn.org_id) {
     const p = await zohoFetch<{ invoice: ZInvoice }>(`/invoices/${encodeURIComponent(prev.zoho_invoice_id)}`, base, f);
     const pi = p.invoice;
     const status = String(pi.status ?? "").toLowerCase();

@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_HEADERS } from "@/lib/admin/http";
-import { exchangeCode, isAllowedAccountsServer, listOrganizations, saveConnection } from "@/lib/zoho/client";
+import { exchangeCode, isAllowedAccountsServer, listOrganizations, pinnedOrgId, saveConnection } from "@/lib/zoho/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,7 +54,10 @@ export async function GET(req: Request) {
     });
     try {
       const orgs = await listOrganizations();
-      if (orgs.length === 1) await saveConnection({ org_id: orgs[0].organization_id, org_name: orgs[0].name });
+      const pin = pinnedOrgId();
+      const pick = pin ? orgs.find((o) => o.organization_id === pin) : undefined;
+      if (pick) await saveConnection({ org_id: pick.organization_id, org_name: pick.name });
+      else if (pin) return done(req, { err: `Connected, but organisation ${pin} (ZOHO_ORG_ID) was not found in this Zoho account.` });
     } catch {
       // Org lookup failure is non-fatal: the admin can pick one on /admin/zoho.
     }

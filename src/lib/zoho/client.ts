@@ -1,4 +1,4 @@
-// Server-only: Zoho Books OAuth connection (single row in zoho_connection) and an authenticated API fetch.
+// Server-only: Zoho Books OAuth connection (one zoho_connection row per environment) and an authenticated API fetch.
 // Every network function takes an injectable fetch, and the DB-backed ones an injectable store, for tests.
 import { db } from "../server/db";
 
@@ -26,8 +26,37 @@ export type ZohoStore = {
 export const SCOPES = "ZohoBooks.invoices.ALL,ZohoBooks.contacts.ALL,ZohoBooks.settings.READ";
 const DEFAULT_ACCOUNTS = "https://accounts.zoho.com";
 
+/**
+ * Production and preview/development keep separate connections (row 1 and row 2), because both deployments
+ * share one Supabase project. A preview can never reuse the production connection, or vice versa.
+ */
+export function connId(): number {
+  return process.env.VERCEL_ENV === "production" ? 1 : 2;
+}
+
+export function envLabel(): string {
+  return process.env.VERCEL_ENV === "production" ? "production" : "preview";
+}
+
+/** The only Zoho Books organisation this deployment may use (env ZOHO_ORG_ID), or null when unset. */
+export function pinnedOrgId(): string | null {
+  const v = (process.env.ZOHO_ORG_ID ?? "").trim();
+  return v || null;
+}
+
+/**
+ * Hard lock: no organisation-scoped Zoho call (read or write) runs unless ZOHO_ORG_ID is set for this
+ * environment and the connection is on exactly that organisation.
+ */
+export function assertOrgAllowed(orgId: string | null | undefined): void {
+  const pin = pinnedOrgId();
+  if (!pin) throw new Error(`zoho locked: ZOHO_ORG_ID is not set for ${envLabel()}`);
+  if (!orgId) throw new Error("zoho organization not selected");
+  if (orgId !== pin) throw new Error(`zoho locked: organisation ${orgId} is not the one allowed for ${envLabel()} (${pin})`);
+}
+
 export async function getConnection(): Promise<ZohoConn | null> {
-  const { data, error } = await db().from("zoho_connection").select("*").eq("id", 1).maybeSingle();
+  const { data, error } = await db().from("zoho_connection").select("*").eq("id", connId()).maybeSingle();
   if (error) throw new Error(`zoho connection lookup failed: ${error.message}`);
   return (data as ZohoConn | null) ?? null;
 }
@@ -35,7 +64,7 @@ export async function getConnection(): Promise<ZohoConn | null> {
 export async function saveConnection(patch: Partial<ZohoConn>): Promise<ZohoConn> {
   const { data, error } = await db()
     .from("zoho_connection")
-    .upsert({ ...patch, id: 1 }, { onConflict: "id" })
+    .upsert({ ...patch, id: connId() }, { onConflict: "id" })
     .select("*")
     .single();
   if (error) throw new Error(`zoho connection save failed: ${error.message}`);
@@ -43,7 +72,7 @@ export async function saveConnection(patch: Partial<ZohoConn>): Promise<ZohoConn
 }
 
 export async function clearConnection(): Promise<void> {
-  const { error } = await db().from("zoho_connection").delete().eq("id", 1);
+  const { error } = await db().from("zoho_connection").delete().eq("id", connId());
   if (error) throw new Error(`zoho connection clear failed: ${error.message}`);
 }
 
@@ -184,7 +213,10 @@ export async function zohoFetch(path: string, init: ZohoInit = {}, f: Fetch = fe
   const token = await accessToken(conn, f, store.save);
   const base = `${(conn.api_domain ?? "https://www.zohoapis.com").replace(/\/+$/, "")}/books/v3`;
   const url = new URL(base + (path.startsWith("/") ? path : `/${path}`));
-  if (conn.org_id && !noOrg) url.searchParams.set("organization_id", conn.org_id);
+  if (!noOrg) {
+    assertOrgAllowed(conn.org_id);
+    url.searchParams.set("organization_id", conn.org_id!);
+  }
   const h = new Headers(headers as HeadersInit | undefined);
   h.set("Authorization", `Zoho-oauthtoken ${token}`);
   let payload: BodyInit | undefined;

@@ -1,5 +1,5 @@
 import { back, guard, str } from "@/lib/admin/http";
-import { getConnection, saveConnection } from "@/lib/zoho/client";
+import { envLabel, getConnection, pinnedOrgId, saveConnection } from "@/lib/zoho/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +12,9 @@ export async function POST(req: Request) {
   const org_id = str(form.get("org_id"));
   const org_name = str(form.get("org_name"));
   if (!org_id) return back(req, "/admin/zoho", { err: "Choose an organisation." });
+  const pin = pinnedOrgId();
+  if (!pin) return back(req, "/admin/zoho", { err: `Set ZOHO_ORG_ID for ${envLabel()} in Vercel first, then redeploy.` });
+  if (org_id !== pin) return back(req, "/admin/zoho", { err: `This ${envLabel()} deployment may only use organisation ${pin}.` });
   if (!(await getConnection())) return back(req, "/admin/zoho", { err: "Connect Zoho Books first." });
   try {
     await saveConnection({ org_id, org_name: org_name || org_id });

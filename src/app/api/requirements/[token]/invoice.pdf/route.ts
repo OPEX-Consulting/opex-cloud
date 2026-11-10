@@ -46,8 +46,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
       const conn = await getConnection();
       if (conn?.org_id && conn.refresh_token) {
         try {
-          let id = inv.zoho_invoice_id ?? null;
-          let number = inv.zoho_invoice_number ?? null;
+          // Reuse only an invoice created in this deployment's organisation; preview (test org) and
+          // production (live org) share the invoices table.
+          const sameOrg = inv.zoho_org_id === conn.org_id;
+          let id = sameOrg ? (inv.zoho_invoice_id ?? null) : null;
+          let number = sameOrg ? (inv.zoho_invoice_number ?? null) : null;
           if (id) {
             zohoStatus = "reused";
           } else {
@@ -57,6 +60,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
             number = r.zoho_invoice_number;
             await saveZohoFields(inv.id, {
               zoho_invoice_id: r.zoho_invoice_id,
+              zoho_org_id: conn.org_id,
+              zoho_voided_at: null,
               zoho_invoice_number: r.zoho_invoice_number,
               zoho_total: r.zoho_total,
               zoho_status: r.zoho_status,

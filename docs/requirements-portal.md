@@ -29,6 +29,7 @@ Set in Vercel (Production + Preview) and in `.env.local` for local development:
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | SMTP for download alerts (e.g. Google Workspace: `smtp.gmail.com`, 465, true, mailbox address, app password). Without host/user/pass, emails are recorded in `notifications` as `skipped_no_provider` and the PDF is still served. |
 | `INVOICE_ALERT_TO` | Optional. Who gets the "invoice downloaded" email. Default `info@opexconsult.co.uk`. |
 | `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET` | Zoho API Console client (Server-based Application) for the Zoho Books integration. See "Zoho Books". |
+| `ZOHO_ORG_ID` | Required for Zoho. The only Zoho Books organisation this environment may use. Set Preview to the test organisation and Production to the live one. If it is unset or doesn't match, no Zoho call runs and the portal PDF is served. |
 | `ZOHO_BILLING_MONTHS` | Optional. Months of service each Zoho invoice covers (line rate = monthly unit price × months). Default `1`. |
 | `INVOICE_FROM` | Optional. Sender, e.g. `OPEX Cloud <billing@your-verified-domain>`. Default `OPEX Cloud <SMTP_USER>` (most SMTP servers only accept the logged-in mailbox or its aliases). |
 
@@ -166,7 +167,9 @@ Zoho is not connected the portal PDF is served as before. The OPEX download emai
 sync result (created / reused / not connected / failed), any total-mismatch warning, and attaches the PDF that was
 actually served.
 
-**Environment.** `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, optional `ZOHO_BILLING_MONTHS` (default 1).
+**Environment lock.** Production and preview keep separate connections (zoho_connection row 1 and row 2), because they share one Supabase project. Each invoice records `zoho_org_id`, and a Zoho invoice is reused or voided only within the same organisation.
+
+**Environment.** `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_ORG_ID` (per environment), optional `ZOHO_BILLING_MONTHS` (default 1).
 
 **Setup.**
 1. In the Zoho API Console (api-console.zoho.com) add a client of type **Server-based Application**.
