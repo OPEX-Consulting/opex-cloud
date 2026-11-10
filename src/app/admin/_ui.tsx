@@ -23,7 +23,7 @@ export async function Flash({ searchParams }: { searchParams: SP }) {
   );
 }
 
-export function AdminShell({ active, children }: { active: "projects" | "pricing"; children: ReactNode }) {
+export function AdminShell({ active, children }: { active: "projects" | "pricing" | "zoho"; children: ReactNode }) {
   const tab = (href: string, label: string, on: boolean) => (
     <Link href={href} className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${on ? "bg-white/15 text-white" : "text-white/70 hover:text-white"}`}>
       {label}
@@ -38,6 +38,7 @@ export function AdminShell({ active, children }: { active: "projects" | "pricing
             <nav className="flex gap-1">
               {tab("/admin/projects", "Projects", active === "projects")}
               {tab("/admin/pricing", "Pricing", active === "pricing")}
+              {tab("/admin/zoho", "Zoho Books", active === "zoho")}
             </nav>
           </div>
           <form action="/api/admin/logout" method="post">

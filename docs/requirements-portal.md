@@ -28,6 +28,8 @@ Set in Vercel (Production + Preview) and in `.env.local` for local development:
 | `CRON_SECRET` | Protects `/api/cron/fx`; Vercel cron sends it automatically. Set (random) in Vercel. |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | SMTP for download alerts (e.g. Google Workspace: `smtp.gmail.com`, 465, true, mailbox address, app password). Without host/user/pass, emails are recorded in `notifications` as `skipped_no_provider` and the PDF is still served. |
 | `INVOICE_ALERT_TO` | Optional. Who gets the "invoice downloaded" email. Default `info@opexconsult.co.uk`. |
+| `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET` | Zoho API Console client (Server-based Application) for the Zoho Books integration. See "Zoho Books". |
+| `ZOHO_BILLING_MONTHS` | Optional. Months of service each Zoho invoice covers (line rate = monthly unit price × months). Default `1`. |
 | `INVOICE_FROM` | Optional. Sender, e.g. `OPEX Cloud <billing@your-verified-domain>`. Default `OPEX Cloud <SMTP_USER>` (most SMTP servers only accept the logged-in mailbox or its aliases). |
 
 If either variable is missing, the portal runs in **demo mode** for every token (fake "Demo Client Ltd" project,
@@ -150,6 +152,36 @@ sheet's Comparison and Client Quote tabs exactly; unit tests in `src/lib/pricing
   Each invoice stores the rate and its source.
 - **Download email**: each PDF download emails OPEX with the PDF, client, number/version, amount due and what changed
   from the previous version. Repeated downloads of the same version within 10 minutes send one email.
+
+## Zoho Books
+
+**Purpose.** On the first PDF download of each invoice version, the portal creates an open (sent) invoice in Zoho
+Books, using Zoho's own numbering, and serves Zoho's PDF (filename `<Zoho invoice number>.pdf`). Later downloads of
+the same version reuse that Zoho invoice. When a new version is created, the previous version's Zoho invoice is voided
+only if it is still unpaid (balance = total); a paid or part-paid one is left alone and the reason is stored on the
+old row (`zoho_sync_error`). The contact is matched by bill-to name, then email, and created if missing. "To be
+quoted" lines are left out of Zoho and mentioned in the notes. If Zoho fails for any reason the error is saved on the
+row (`zoho_sync_error`) and the portal's own PDF is served instead; the download never fails because of Zoho. When
+Zoho is not connected the portal PDF is served as before. The OPEX download email shows the Zoho invoice number, the
+sync result (created / reused / not connected / failed), any total-mismatch warning, and attaches the PDF that was
+actually served.
+
+**Environment.** `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, optional `ZOHO_BILLING_MONTHS` (default 1).
+
+**Setup.**
+1. In the Zoho API Console (api-console.zoho.com) add a client of type **Server-based Application**.
+2. Authorized redirect URIs: `{preview origin}/api/admin/zoho/callback` (for each preview deployment you use) and
+   `https://opex-cloud.vercel.app/api/admin/zoho/callback`.
+3. If the Zoho Books organisation is not on the `.com` data centre, open the client's Settings and turn on
+   **Multi-DC** (enable the DC where the org lives).
+4. Put the client ID and secret in Vercel as `ZOHO_CLIENT_ID` / `ZOHO_CLIENT_SECRET`, redeploy, then open
+   `/admin/zoho`, click **Connect** and pick the organisation.
+
+**Prerequisite.** A **7.5%** tax (VAT) must exist in Zoho Books (Settings → Taxes); it is applied to every line. Without
+it the sync fails and the portal PDF is used.
+
+**Scopes.** `ZohoBooks.invoices.ALL`, `ZohoBooks.contacts.ALL`, `ZohoBooks.settings.READ` (offline access, so a
+refresh token is stored in `zoho_connection`, migration `0003_zoho_books.sql`).
 
 ## Placeholders to replace
 

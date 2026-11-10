@@ -24,6 +24,12 @@ export async function notifyInvoiceDownload(args: {
   pdf: Uint8Array;
   customerName: string;
   projectName: string;
+  /** Filename of the PDF that was served (defaults to NUMBER-vN.pdf). */
+  filename?: string;
+  zohoNumber?: string;
+  /** 'created' | 'reused' | 'not connected' | 'failed: msg' */
+  zohoStatus?: string;
+  warning?: string;
 }): Promise<{ status: string; id?: string }> {
   const { invoice, pdf } = args;
   try {
@@ -74,13 +80,16 @@ export async function notifyInvoiceDownload(args: {
       ["Amount due now", naira(Number(invoice.amount_due_now))],
       ["Partner (internal)", invoice.chosen_partner],
       ["FX used (internal)", `${invoice.fx_rate_used} – ${invoice.fx_source}`],
+      ["Zoho Books invoice", args.zohoNumber || "—"],
+      ["Zoho sync", args.zohoStatus || "not connected"],
     ];
     const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#07152f">
 <p>A client has downloaded a pro-forma invoice from the requirements portal.</p>
+${args.warning ? `<p style="color:#c0262d"><b>Warning:</b> ${esc(args.warning)}</p>` : ""}
 <table cellpadding="4" style="border-collapse:collapse">${rows.map(([k, v]) => `<tr><td style="color:#5f6b7a">${esc(k)}</td><td><b>${esc(v)}</b></td></tr>`).join("")}</table>
 <p><b>What changed from the previous version</b></p><ul>${changes.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
 <p>The PDF is attached.</p></div>`;
-    const text = `${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\nWhat changed:\n${changes.map((c) => `- ${c}`).join("\n")}`;
+    const text = `${args.warning ? `WARNING: ${args.warning}\n\n` : ""}${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\nWhat changed:\n${changes.map((c) => `- ${c}`).join("\n")}`;
 
     const port = Number(process.env.SMTP_PORT || 465);
     const transport = nodemailer.createTransport({
@@ -99,7 +108,7 @@ export async function notifyInvoiceDownload(args: {
         subject,
         html,
         text,
-        attachments: [{ filename: `${invoice.number}-v${invoice.version}.pdf`, content: Buffer.from(pdf), contentType: "application/pdf" }],
+        attachments: [{ filename: args.filename || `${invoice.number}-v${invoice.version}.pdf`, content: Buffer.from(pdf), contentType: "application/pdf" }],
       });
       await db().from("notifications").update({ status: "sent", provider_id: info.messageId ?? null, sent_at: new Date().toISOString() }).eq("id", pending?.id);
       return { status: "sent", id: info.messageId };
