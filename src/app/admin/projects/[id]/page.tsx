@@ -6,6 +6,7 @@ import { db } from "@/lib/server/db";
 import { listInvoices } from "@/lib/invoice/service";
 import { draftSchema, SERVER_KINDS, type Servers } from "@/lib/requirements/schema";
 import { Summary } from "@/app/requirements/_components/Summary";
+import { CopyButton } from "../../_copy";
 import { AdminShell, Card, Flash, btn, btnLight, input, ngn, when, type SP } from "../../_ui";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,10 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
         {p.project_name} · status <b>{p.status}</b> · submitted {when(p.submitted_at)} ({p.submit_count ?? 0}×) · link expires {when(p.expires_at)}
       </p>
       <Card title="Client link">
-        <p className="break-all rounded-lg bg-[#f5f7fb] px-3 py-2 font-mono text-sm">{link}</p>
+        <div className="flex items-center gap-2">
+          <p className="min-w-0 flex-1 break-all rounded-lg bg-[#f5f7fb] px-3 py-2 font-mono text-sm">{link}</p>
+          <CopyButton text={link} />
+        </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <form action={`/api/admin/projects/${id}`} method="post" className="flex items-center gap-2">
             <input type="hidden" name="action" value="extend" />
